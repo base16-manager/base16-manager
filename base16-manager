@@ -1,0 +1,119 @@
+#!/usr/bin/env sh
+DIR="$HOME/.base16-manager"
+
+usage() {
+    echo "Usage: base16-manager [option]"
+    echo "Options:"
+    echo "   add          'username/repository'  Adds a Github repository"
+    echo "   remove       'username/repository'  Removes a Github repository"
+    echo "   set          'base16-scheme'        Sets the new colorscheme"
+    echo "   clean                               Cleans out leftovers"
+    echo "   self-update                         Updates this script"
+}
+
+check_dir() {
+    if [ ! -d $1 ]; then
+        mkdir $1
+    fi
+}
+
+check_file() {
+    if [ ! -f $2 ]; then
+        echo "Configuration file for $1 not found"
+        exit 1
+    fi
+}
+
+check_arg() {
+    if [ "$1" == "" ]; then
+        usage
+        exit 1
+    fi }
+
+add() {
+    check_dir $DIR
+
+    git clone "https://github.com/$1" "$DIR/$1"
+}
+
+remove() {
+    rm -rf "$HOME/.base16-manager/$1"
+    echo "Removed $1."
+}
+
+clean() {
+    find $DIR -maxdepth 1 -type d -empty -delete
+    check_dir $DIR # Apparently I need to remake the directory if all folders are empty
+    echo "Cleaned up $DIR."
+}
+
+self_update() {
+    echo "self-update stub"
+}
+
+# This'll be the most work
+set_theme() {
+    THEME=$1
+    PKGS=$(find "$DIR" -maxdepth 2 -mindepth 2 -type d -printf "%P\n")
+
+    for PKG in $PKGS
+    do
+        case $PKG in
+            "chriskempson/base16-shell")
+                set_shell $PKG $THEME
+                ;;
+            "chriskempson/base16-xresources")
+                set_xresources $PKG $THEME
+                ;;
+            "0xdec/base16-rofi")
+                set_rofi $PKG $THEME
+                ;;
+            *)
+                echo "Package $PKG is not yet supported."
+                ;;
+        esac
+    done
+
+    echo "Set theme to $1. You may need to restart DE."
+}
+
+set_shell() {
+    THM="$DIR/$1/scripts/base16-$2.sh"
+    check_file $1 $THM
+    sh $THM
+}
+
+set_xresources() {
+    THM="$DIR/$1/xresources/base16-$2.Xresources"
+    check_file $1 $THM
+    cp "$THM" "$HOME/.Xresources.d/colors"
+    xrdb -load "$HOME/.Xresources"
+}
+
+set_rofi() {
+    THM="$DIR/$1/themes/base16-$2.config"
+    check_file $1 $THM
+    cp "$THM" "$HOME/.config/rofi/config"
+}
+
+main() {
+    if [ $# -eq 0 ]; then
+        usage
+        exit 0
+    fi
+
+    OPTION=$1
+
+    shift
+
+    case $OPTION in
+        "add"        ) check_arg "$1"; add "$1";;
+        "remove"     ) check_arg "$1"; remove "$1";;
+        "set"        ) check_arg "$1"; set_theme "$1";;
+        "clean"      ) clean;;
+        "self-update") self_update;;
+        *            ) usage;;
+    esac
+}
+
+main "$@"
