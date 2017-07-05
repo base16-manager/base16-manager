@@ -2,14 +2,16 @@
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname $SCRIPT)
 SCRIPTNAME="$0"
-
-DIR="$HOME/.base16-manager"
+CONFIGPATH="$HOME/.base16-manager"
+PACKAGES=$(find $CONFIGPATH -maxdepth 2 -mindepth 2 -type d -printf "%P\n")
 
 usage() {
     echo "Usage: base16-manager [option]"
     echo "Options:"
-    echo "   add          'username/repository'  Adds a Github repository"
+    echo "   add          'username/repository'  Installs a Github repository"
     echo "   remove       'username/repository'  Removes a Github repository"
+    echo "   list                                Lists installed repositories"
+    echo "   update                              Updates insatlled repositories"
     echo "   set          'base16-scheme'        Sets the new colorscheme"
     echo "   clean                               Cleans out leftovers"
     echo "   self-update                         Updates this script"
@@ -35,20 +37,27 @@ check_arg() {
     fi }
 
 add() {
-    check_dir $DIR
-
-    git clone "https://github.com/$1" "$DIR/$1"
+    check_dir $CONFIGPATH
+    git clone "https://github.com/$1" "$CONFIGPATH/$1"
 }
 
 remove() {
-    rm -rf "$HOME/.base16-manager/$1"
+    rm -rf "$CONFIGPATH/$1"
     echo "Removed $1."
 }
 
+list() {
+    echo "$PACKAGES"
+}
+
+update() {
+    echo "update stub"
+}
+
 clean() {
-    find $DIR -maxdepth 1 -type d -empty -delete
-    check_dir $DIR # Apparently I need to remake the directory if all folders are empty
-    echo "Cleaned up $DIR."
+    find $CONFIGPATH -maxdepth 1 -type d -empty -delete
+    check_dir $CONFIGPATH # Apparently I need to remake the directory if all folders are empty
+    echo "Cleaned up $CONFIGPATH."
 }
 
 self_update() {
@@ -62,22 +71,21 @@ self_update() {
 # This'll be the most work
 set_theme() {
     THEME=$1
-    PKGS=$(find "$DIR" -maxdepth 2 -mindepth 2 -type d -printf "%P\n")
 
-    for PKG in $PKGS
+    for PACKAGE in $PACKAGES
     do
-        case $PKG in
+        case $PACKAGE in
             "chriskempson/base16-shell")
-                set_shell $PKG $THEME
+                set_shell $PACKAGE $THEME
                 ;;
             "chriskempson/base16-xresources")
-                set_xresources $PKG $THEME
+                set_xresources $PACKAGE $THEME
                 ;;
             "0xdec/base16-rofi")
-                set_rofi $PKG $THEME
+                set_rofi $PACKAGE $THEME
                 ;;
             *)
-                echo "Package $PKG is not yet supported."
+                echo "Package $PACKAGE is not yet supported."
                 ;;
         esac
     done
@@ -86,24 +94,24 @@ set_theme() {
 }
 
 set_shell() {
-    SCRIPT="$DIR/$1/profile_helper.sh"
-    THM="$DIR/$1/scripts/base16-$2.sh"
-    check_file $1 $THM
-    eval "$($SCRIPT)"
-    _base16 "$THM"
+    HELPER="$CONFIGPATH/$1/profile_helper.sh"
+    THEME="$CONFIGPATH/$1/scripts/base16-$2.sh"
+    check_file $1 $THEME
+    eval "$($HELPER)"
+    _base16 "$THEME"
 }
 
 set_xresources() {
-    THM="$DIR/$1/xresources/base16-$2.Xresources"
-    check_file $1 $THM
-    cp "$THM" "$HOME/.Xresources.d/colors"
+    THEME="$CONFIGPATH/$1/xresources/base16-$2.Xresources"
+    check_file $1 $THEME
+    cp "$THEME" "$HOME/.Xresources.d/colors"
     xrdb -load "$HOME/.Xresources"
 }
 
 set_rofi() {
-    THM="$DIR/$1/themes/base16-$2.config"
-    check_file $1 $THM
-    cp "$THM" "$HOME/.config/rofi/config"
+    THEME="$CONFIGPATH/$1/themes/base16-$2.config"
+    check_file $1 $THEME
+    cp "$THEME" "$HOME/.config/rofi/config"
 }
 
 main() {
@@ -119,6 +127,8 @@ main() {
     case $OPTION in
         "add"        ) check_arg "$1"; add "$1";;
         "remove"     ) check_arg "$1"; remove "$1";;
+        "list"       ) list;;
+        "update"     ) update;;
         "set"        ) check_arg "$1"; set_theme "$1";;
         "clean"      ) clean;;
         "self-update") self_update;;
