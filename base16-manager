@@ -78,9 +78,11 @@ set_theme() {
 }
 
 set_shell() {
+    SCRIPT="$DIR/$1/profile_helper.sh"
     THM="$DIR/$1/scripts/base16-$2.sh"
     check_file $1 $THM
-    sh $THM
+    eval "$($SCRIPT)"
+    _base16 "$THM"
 }
 
 set_xresources() {
