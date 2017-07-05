@@ -1,4 +1,8 @@
 #!/usr/bin/env sh
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname $SCRIPT)
+SCRIPTNAME="$0"
+
 DIR="$HOME/.base16-manager"
 
 usage() {
@@ -48,7 +52,11 @@ clean() {
 }
 
 self_update() {
-    echo "self-update stub"
+    cd "$SCRIPTPATH"
+    mv "base16-manager" "base16-manager.old"
+    curl -o "base16-manager" "https://raw.githubusercontent.com/AuditeMarlow/base16-manager/master/base16-manager"
+    chmod +x "base16-manager"
+    echo "Updated base16-manager."
 }
 
 # This'll be the most work
@@ -116,6 +124,8 @@ main() {
         "self-update") self_update;;
         *            ) usage;;
     esac
+
+    exit 0
 }
 
 main "$@"
