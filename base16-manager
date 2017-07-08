@@ -78,6 +78,9 @@ set_theme() {
             "chriskempson/base16-shell")
                 set_shell $PACKAGE $THEME
                 ;;
+            "chriskempson/base16-vim")
+                set_vim $PACKAGE $THEME
+                ;;
             "chriskempson/base16-xresources")
                 set_xresources $PACKAGE $THEME
                 ;;
@@ -91,6 +94,18 @@ set_theme() {
     done
 
     echo "Set theme to $1. You may need to restart DE."
+}
+
+set_fzf() {
+    # cp fzf file to $HOME/.fzf.colors, check if it is sourced in
+    # .bashrc and/or .zshrc, add to file if it isn't
+    echo "set_fzf stub"
+}
+
+set_rofi() {
+    THEME="$CONFIGPATH/$1/themes/base16-$2.config"
+    check_file $1 $THEME
+    cp "$THEME" "$HOME/.config/rofi/config"
 }
 
 set_shell() {
@@ -108,10 +123,11 @@ set_xresources() {
     xrdb -load "$HOME/.Xresources"
 }
 
-set_rofi() {
-    THEME="$CONFIGPATH/$1/themes/base16-$2.config"
-    check_file $1 $THEME
-    cp "$THEME" "$HOME/.config/rofi/config"
+set_vim() {
+    # The idea is to loop through all vim config files in search for
+    # `colorscheme` or `colo`, remove that line and add a new one in
+    # the same file with `colorscheme <theme>`.
+    echo "set_vim stub"
 }
 
 main() {
