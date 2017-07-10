@@ -3,7 +3,6 @@ SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname $SCRIPT)
 SCRIPTNAME="$0"
 CONFIGPATH="$HOME/.base16-manager"
-PACKAGES=$(find $CONFIGPATH -maxdepth 2 -mindepth 2 -type d -printf "%P\n")
 
 usage() {
     echo "Usage: base16-manager [option]"
@@ -47,7 +46,7 @@ remove() {
 }
 
 list() {
-    echo "$PACKAGES"
+    find $CONFIGPATH -maxdepth 2 -mindepth 2 -type d -printf "%P\n"
 }
 
 update() {
@@ -70,9 +69,16 @@ self_update() {
 
 # This'll be the most work
 set_theme() {
+    PACKAGES=$(list)
+
+    if [ -z "$PACKAGES" ]; then
+        echo "No packages installed."
+        exit 0
+    fi
+
     THEME=$1
 
-    for PACKAGE in $PACKAGES
+    for PACKAGE in $(list)
     do
         case $PACKAGE in
             "chriskempson/base16-shell")
@@ -93,7 +99,7 @@ set_theme() {
         esac
     done
 
-    echo "Set theme to $1. You may need to restart DE."
+    echo "Set theme to $1. You may need to restart DE and terminals."
 }
 
 set_fzf() {
@@ -136,6 +142,8 @@ set_xresources() {
 }
 
 main() {
+    check_dir $CONFIGPATH
+
     if [ $# -eq 0 ]; then
         usage
         exit 0
