@@ -78,14 +78,14 @@ set_theme() {
             "chriskempson/base16-shell")
                 set_shell $PACKAGE $THEME
                 ;;
-            "chriskempson/base16-vim")
-                set_vim $PACKAGE $THEME
-                ;;
             "chriskempson/base16-xresources")
                 set_xresources $PACKAGE $THEME
                 ;;
             "0xdec/base16-rofi")
                 set_rofi $PACKAGE $THEME
+                ;;
+            "nicodebo/base16-fzf")
+                set_fzf $PACKAGE $THEME
                 ;;
             *)
                 echo "Package $PACKAGE is not yet supported."
@@ -97,37 +97,42 @@ set_theme() {
 }
 
 set_fzf() {
-    # cp fzf file to $HOME/.fzf.colors, check if it is sourced in
-    # .bashrc and/or .zshrc, add to file if it isn't
-    echo "set_fzf stub"
+    TEMPLATE="$CONFIGPATH/$1/build_scheme/base16-$2.config"
+    check_file $1 $TEMPLATE
+    cp "$TEMPLATE" "$HOME/.fzf.colors"
+    LINE="[ -f ~/.fzf.colors ] && source ~/.fzf.colors"
+    FILES="$HOME/.bashrc $HOME/.zshrc"
+
+    for FILE in $FILES
+    do
+        if ! grep -Fxq "$LINE" "$FILE"; then
+            echo "$LINE" >> "$FILE"
+        fi
+    done
+
+    source "$HOME/.fzf.colors"
 }
 
 set_rofi() {
-    THEME="$CONFIGPATH/$1/themes/base16-$2.config"
-    check_file $1 $THEME
-    cp "$THEME" "$HOME/.config/rofi/config"
+    TEMPLATE="$CONFIGPATH/$1/themes/base16-$2.config"
+    check_file $1 $TEMPLATE
+    cp "$TEMPLATE" "$HOME/.config/rofi/config"
 }
 
 set_shell() {
     HELPER="$CONFIGPATH/$1/profile_helper.sh"
-    THEME="$CONFIGPATH/$1/scripts/base16-$2.sh"
-    check_file $1 $THEME
+    TEMPLATE="$CONFIGPATH/$1/scripts/base16-$2.sh"
+    check_file $1 $HELPER
+    check_file $1 $TEMPLATE
     eval "$($HELPER)"
-    _base16 "$THEME"
+    _base16 "$TEMPLATE"
 }
 
 set_xresources() {
-    THEME="$CONFIGPATH/$1/xresources/base16-$2.Xresources"
-    check_file $1 $THEME
-    cp "$THEME" "$HOME/.Xresources.d/colors"
+    TEMPLATE="$CONFIGPATH/$1/xresources/base16-$2.Xresources"
+    check_file $1 $TEMPLATE
+    cp "$TEMPLATE" "$HOME/.Xresources.d/colors"
     xrdb -load "$HOME/.Xresources"
-}
-
-set_vim() {
-    # The idea is to loop through all vim config files in search for
-    # `colorscheme` or `colo`, remove that line and add a new one in
-    # the same file with `colorscheme <theme>`.
-    echo "set_vim stub"
 }
 
 main() {
