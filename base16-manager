@@ -1,170 +1,236 @@
-#!/usr/bin/env sh
-SCRIPT=$(readlink -f "$0")
-SCRIPTPATH=$(dirname $SCRIPT)
-SCRIPTNAME="$0"
-CONFIGPATH="$HOME/.base16-manager"
+#!/bin/bash
+#
+# Install, remove, update base16 templates and set themes globally.
 
-usage() {
-    echo "Usage: base16-manager [option]"
-    echo "Options:"
-    echo "   add          'username/repository'  Installs a Github repository"
-    echo "   remove       'username/repository'  Removes a Github repository"
-    echo "   list                                Lists installed repositories"
-    echo "   update                              Updates insatlled repositories"
-    echo "   set          'base16-scheme'        Sets the new colorscheme"
-    echo "   clean                               Cleans out leftovers"
-    echo "   self-update                         Updates this script"
+readonly SCRIPT_NAME="$0"
+readonly SCRIPT=$(readlink -f "${SCRIPT_NAME}")
+readonly SCRIPT_PATH=$(dirname ${SCRIPT})
+readonly CONFIG_PATH="${HOME}/.base16-manager"
+
+err() {
+  echo "$@" >&2
+  exit 2
 }
 
+usage() {
+  echo "Usage: base16-manager [option]"
+  echo "Options:"
+  echo "   install      'username/repository'  Installs a template repository"
+  echo "   remove       'username/repository'  Removes a template repository"
+  echo "   list                                Lists installed templates"
+  echo "   update                              Updates insatlled templates"
+  echo "   set          'base16-theme'         Sets the new theme"
+  echo "   clean                               Cleans up leftovers"
+  echo "   self-update                         Updates this script"
+}
+
+# Creates a directory if it does not yet exist.
 check_dir() {
-    if [ ! -d $1 ]; then
-        mkdir $1
-    fi
+  local dir=$1
+
+  if [ ! -d "${dir}" ]; then
+    mkdir "${dir}"
+  fi
 }
 
 check_file() {
-    if [ ! -f $2 ]; then
-        echo "Configuration file for $1 not found"
-        exit 1
-    fi
+  local file=$1
+
+  if [ ! -f "${file}" ]; then
+    err "File '${file}' not found."
+  fi
 }
 
 check_arg() {
-    if [ "$1" == "" ]; then
-        usage
-        exit 1
-    fi }
+  local arg=$1
 
-add() {
-    check_dir $CONFIGPATH
-    git clone "https://github.com/$1" "$CONFIGPATH/$1"
+  if [[ -z "${arg}" ]]; then
+    usage
+    exit 0
+  fi
+}
+
+install() {
+  local template=$1
+  local repository="https://github.com/${template}"
+
+  check_dir ${CONFIG_PATH}
+
+  if ! git ls-remote --exit-code -h "${repository}" > /dev/null; then
+    err "Template repository not found."
+  fi
+
+  git clone "${repository}" "$CONFIG_PATH/${template}"
 }
 
 remove() {
-    rm -rf "$CONFIGPATH/$1"
-    echo "Removed $1."
+  local template=$1
+
+  check_dir "${CONFIG_PATH}/${template}"
+
+  rm -rf "${CONFIG_PATH}/${template}"
+  echo "Removed ${template}."
 }
 
 list() {
-    find $CONFIGPATH -maxdepth 2 -mindepth 2 -type d -printf "%P\n"
+  find ${CONFIG_PATH} -maxdepth 2 -mindepth 2 -type d -printf "%P\n"
 }
 
 update() {
-    echo "update stub"
+  echo "update stub"
 }
 
 clean() {
-    find $CONFIGPATH -maxdepth 1 -type d -empty -delete
-    check_dir $CONFIGPATH # Apparently I need to remake the directory if all folders are empty
-    echo "Cleaned up $CONFIGPATH."
+  find ${CONFIG_PATH} -maxdepth 1 -type d -empty -delete
+
+  check_dir ${CONFIG_PATH}
+
+  echo "Cleaned up ${CONFIG_PATH}."
 }
 
 self_update() {
-    cd "$SCRIPTPATH"
-    mv "base16-manager" "base16-manager.old"
-    curl -o "base16-manager" "https://raw.githubusercontent.com/AuditeMarlow/base16-manager/master/base16-manager"
-    chmod +x "base16-manager"
-    echo "Updated base16-manager."
+  cd "${SCRIPT_PATH}"
+  mv "base16-manager" "base16-manager.old"
+
+  curl -o "base16-manager" \
+    "https://raw.githubusercontent.com/AuditeMarlow/base16-manager/master/base16-manager"
+
+  chmod +x "base16-manager"
+
+  echo "Updated base16-manager."
 }
 
-# This'll be the most work
 set_theme() {
-    PACKAGES=$(list)
+  local theme=$1
+  local packages=$(list)
 
-    if [ -z "$PACKAGES" ]; then
-        echo "No packages installed."
-        exit 0
-    fi
+  if [[ -z "${packages}" ]]; then
+    err "No packages installed."
+    exit 0
+  fi
 
-    THEME=$1
+  for package in ${packages}; do
+    case "${package}" in
+      "chriskempson/base16-shell")
+        set_shell ${package} ${theme}
+        ;;
+      "chriskempson/base16-xresources")
+        set_xresources ${package} ${theme}
+        ;;
+      "0xdec/base16-rofi")
+        set_rofi ${package} ${theme}
+        ;;
+      "nicodebo/base16-fzf")
+        set_fzf ${package} ${theme}
+        ;;
+      *)
+        err "Package ${package} is not (yet) supported."
+        ;;
+    esac
+  done
 
-    for PACKAGE in $PACKAGES
-    do
-        case $PACKAGE in
-            "chriskempson/base16-shell")
-                set_shell $PACKAGE $THEME
-                ;;
-            "chriskempson/base16-xresources")
-                set_xresources $PACKAGE $THEME
-                ;;
-            "0xdec/base16-rofi")
-                set_rofi $PACKAGE $THEME
-                ;;
-            "nicodebo/base16-fzf")
-                set_fzf $PACKAGE $THEME
-                ;;
-            *)
-                echo "Package $PACKAGE is not yet supported."
-                ;;
-        esac
-    done
-
-    echo "Set theme to $1. You may need to restart DE and terminals."
+  echo "Set theme to ${theme}. You may need to restart DE and terminals."
 }
 
 set_fzf() {
-    TEMPLATE="$CONFIGPATH/$1/build_scheme/base16-$2.config"
-    check_file $1 $TEMPLATE
-    cp "$TEMPLATE" "$HOME/.fzf.colors"
-    LINE="[ -f ~/.fzf.colors ] && source ~/.fzf.colors"
-    FILES="$HOME/.bashrc $HOME/.zshrc"
+  local package=$1
+  local theme=$2
+  local file="${CONFIG_PATH}/${package}/build_scheme/base16-${theme}.config"
+  local line="[ -f ~/.fzf.colors ] && source ~/.fzf.colors"
+  local rcs="$HOME/.bashrc $HOME/.zshrc"
 
-    for FILE in $FILES
-    do
-        if ! grep -Fxq "$LINE" "$FILE"; then
-            echo "$LINE" >> "$FILE"
-        fi
-    done
+  check_file ${file}
 
-    source "$HOME/.fzf.colors"
+  cp "${file}" "${HOME}/.fzf.colors"
+
+  for rc in ${rcs}
+  do
+    if ! grep -Fxq "${line}" "${rc}"; then
+      echo "${line}" >> "${rc}"
+    fi
+  done
+
+  source "${HOME}/.fzf.colors"
 }
 
 set_rofi() {
-    TEMPLATE="$CONFIGPATH/$1/themes/base16-$2.config"
-    check_file $1 $TEMPLATE
-    cp "$TEMPLATE" "$HOME/.config/rofi/config"
+  local package=$1
+  local theme=$2
+  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.config"
+
+  check_file ${file}
+
+  cp "${file}" "${HOME}/.config/rofi/config"
 }
 
 set_shell() {
-    HELPER="$CONFIGPATH/$1/profile_helper.sh"
-    TEMPLATE="$CONFIGPATH/$1/scripts/base16-$2.sh"
-    check_file $1 $HELPER
-    check_file $1 $TEMPLATE
-    eval "$($HELPER)"
-    _base16 "$TEMPLATE"
+  local package=$1
+  local theme=$2
+  local file="${CONFIG_PATH}/${package}/scripts/base16-${theme}.sh"
+  local helper="${CONFIG_PATH}/${package}/profile_helper.sh"
+
+  check_file ${helper}
+  check_file ${file}
+
+  eval "$(${helper})"
+  _base16 "${file}"
 }
 
 set_xresources() {
-    TEMPLATE="$CONFIGPATH/$1/xresources/base16-$2.Xresources"
-    check_file $1 $TEMPLATE
-    cp "$TEMPLATE" "$HOME/.Xresources.d/colors"
-    xrdb -load "$HOME/.Xresources"
+  local package=$1
+  local theme=$2
+  local file="${CONFIG_PATH}/${package}/xresources/base16-${theme}.Xresources"
+
+  check_file ${file}
+
+  cp "${file}" "${HOME}/.Xresources.d/colors"
+
+  # TODO: Check if ~/.Xresources includes colors file.
+  xrdb -load "$HOME/.Xresources"
 }
 
 main() {
-    check_dir $CONFIGPATH
+  check_dir ${CONFIG_PATH}
 
-    if [ $# -eq 0 ]; then
-        usage
-        exit 0
-    fi
+  local option=$1
+  local arg=$2
 
-    OPTION=$1
-
-    shift
-
-    case $OPTION in
-        "add"        ) check_arg "$1"; add "$1";;
-        "remove"     ) check_arg "$1"; remove "$1";;
-        "list"       ) list;;
-        "update"     ) update;;
-        "set"        ) check_arg "$1"; set_theme "$1";;
-        "clean"      ) clean;;
-        "self-update") self_update;;
-        *            ) usage;;
-    esac
-
+  if [[ -z "${option}" ]]; then
+    usage
     exit 0
+  fi
+
+  case ${option} in
+    "install")
+      check_arg "${arg}"
+      install "${arg}"
+      ;;
+    "remove")
+      check_arg "${arg}"
+      remove "${arg}"
+      ;;
+    "list")
+      list
+      ;;
+    "update")
+      update
+      ;;
+    "set")
+      check_arg "${arg}"
+      set_theme "${arg}"
+      ;;
+    "clean")
+      clean
+      ;;
+    "self-update")
+      self_update
+      ;;
+    *)
+      usage
+      ;;
+  esac
+
+  exit 0
 }
 
 main "$@"
