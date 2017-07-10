@@ -78,7 +78,7 @@ set_theme() {
 
     THEME=$1
 
-    for PACKAGE in $(list)
+    for PACKAGE in $PACKAGES
     do
         case $PACKAGE in
             "chriskempson/base16-shell")
