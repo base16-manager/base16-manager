@@ -88,7 +88,19 @@ list() {
 }
 
 update() {
-  echo "update stub"
+  local packages=$(list)
+
+  if [[ -z "${packages}" ]]; then
+    err "No packages installed."
+    exit 0
+  fi
+
+  for package in ${packages}; do
+    cd "${CONFIG_PATH}/${package}"
+    git pull -f origin master
+  done
+
+  echo "All packages updated."
 }
 
 clean() {
