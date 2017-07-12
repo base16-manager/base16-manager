@@ -19,7 +19,7 @@ usage() {
   echo "    install      'username/repository'  Installs a new template"
   echo "    uninstall    'username/repository'  Uninstalls a template"
   echo "    list                                Lists installed templates"
-  echo "    update                              Updates insatlled templates"
+  echo "    update                              Updates installed templates"
   echo "    clean                               Cleans up leftovers"
   echo "    self-update                         Updates this script"
 }
