@@ -24,11 +24,22 @@ usage() {
   echo "   self-update                         Updates this script"
 }
 
-# Creates a directory if it does not yet exist.
+dir_exists() {
+  local dir=$1
+
+  [[ -d "${dir}" ]] && true || false
+}
+
+file_exists() {
+  local file=$1
+
+  [[ -f "${file}" ]] && true || false
+}
+
 check_dir() {
   local dir=$1
 
-  if [ ! -d "${dir}" ]; then
+  if ! dir_exists "${dir}"; then
     mkdir "${dir}"
   fi
 }
@@ -36,7 +47,7 @@ check_dir() {
 check_file() {
   local file=$1
 
-  if [ ! -f "${file}" ]; then
+  if  ! file_exists "${file}"; then
     err "File '${file}' not found."
   fi
 }
@@ -114,6 +125,9 @@ set_theme() {
       "chriskempson/base16-shell")
         set_shell ${package} ${theme}
         ;;
+      "chriskempson/base16-vim")
+        set_vim ${package} ${theme}
+        ;;
       "chriskempson/base16-xresources")
         set_xresources ${package} ${theme}
         ;;
@@ -174,6 +188,25 @@ set_shell() {
 
   eval "$(${helper})"
   _base16 "${file}"
+}
+
+set_vim() {
+  local package=$1
+  local theme=$2
+  local file="${CONFIG_PATH}/${package}/colors/base16-${theme}.vim"
+  local vim_files="${HOME}/.vimrc ${HOME}/.config/nvim/init.vim"
+
+  check_file ${file}
+
+  for vim_file in ${vim_files}; do
+    if file_exists "${vim_file}"; then
+      grep -Evx "(colorscheme|colo).*" "${vim_file}" > /tmp/vim_config
+      rm "${vim_file}.bac"
+      mv "${vim_file}" "${vim_file}.bac"
+      mv /tmp/vim_config "${vim_file}"
+      echo "colorscheme base16-${theme}" >> "${vim_file}"
+    fi
+  done
 }
 
 set_xresources() {
