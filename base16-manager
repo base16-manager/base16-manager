@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Install, remove, update base16 templates and set themes globally.
+# Install base16 templates and set themes globally.
 
 readonly SCRIPT_NAME="$0"
 readonly SCRIPT=$(readlink -f "${SCRIPT_NAME}")
@@ -15,13 +15,13 @@ err() {
 usage() {
   echo "Usage: base16-manager [option]"
   echo "Options:"
-  echo "   install      'username/repository'  Installs a template repository"
-  echo "   remove       'username/repository'  Removes a template repository"
-  echo "   list                                Lists installed templates"
-  echo "   update                              Updates insatlled templates"
-  echo "   set          'base16-theme'         Sets the new theme"
-  echo "   clean                               Cleans up leftovers"
-  echo "   self-update                         Updates this script"
+  echo "    set          'base16-theme'         Sets the theme"
+  echo "    install      'username/repository'  Installs a new template"
+  echo "    uninstall    'username/repository'  Uninstalls a template"
+  echo "    list                                Lists installed templates"
+  echo "    update                              Updates insatlled templates"
+  echo "    clean                               Cleans up leftovers"
+  echo "    self-update                         Updates this script"
 }
 
 dir_exists() {
@@ -74,13 +74,13 @@ install() {
   git clone "${repository}" "$CONFIG_PATH/${template}"
 }
 
-remove() {
+uninstall() {
   local template=$1
 
   check_dir "${CONFIG_PATH}/${template}"
 
   rm -rf "${CONFIG_PATH}/${template}"
-  echo "Removed ${template}."
+  echo "Uninstalled ${template}."
 }
 
 list() {
@@ -238,9 +238,9 @@ main() {
       check_arg "${arg}"
       install "${arg}"
       ;;
-    "remove")
+    "uninstall")
       check_arg "${arg}"
-      remove "${arg}"
+      uninstall "${arg}"
       ;;
     "list")
       list
