@@ -9,7 +9,6 @@ readonly CONFIG_PATH="${HOME}/.base16-manager"
 
 err() {
   echo "$@" >&2
-  exit 2
 }
 
 usage() {
@@ -44,20 +43,12 @@ check_dir() {
   fi
 }
 
-check_file() {
-  local file=$1
-
-  if  ! file_exists "${file}"; then
-    err "File '${file}' not found."
-  fi
-}
-
 check_arg() {
   local arg=$1
 
   if [[ -z "${arg}" ]]; then
     usage
-    exit 0
+    exit
   fi
 }
 
@@ -69,6 +60,7 @@ install() {
 
   if ! git ls-remote --exit-code -h "${repository}" > /dev/null; then
     err "Template repository not found."
+    exit
   fi
 
   git clone "${repository}" "$CONFIG_PATH/${template}"
@@ -92,7 +84,7 @@ update() {
 
   if [[ -z "${packages}" ]]; then
     err "No packages installed."
-    exit 0
+    exit
   fi
 
   for package in ${packages}; do
@@ -129,7 +121,7 @@ set_theme() {
 
   if [[ -z "${packages}" ]]; then
     err "No packages installed."
-    exit 0
+    exit
   fi
 
   for package in ${packages}; do
@@ -165,18 +157,20 @@ set_fzf() {
   local line="[ -f ~/.fzf.colors ] && source ~/.fzf.colors"
   local rcs="$HOME/.bashrc $HOME/.zshrc"
 
-  check_file ${file}
+  if ! file_exists ${file}; then
+    err "FZF theme not found."
+  else
+    cp "${file}" "${HOME}/.fzf.colors"
 
-  cp "${file}" "${HOME}/.fzf.colors"
+    for rc in ${rcs}
+    do
+      if ! grep -Fxq "${line}" "${rc}"; then
+        echo "${line}" >> "${rc}"
+      fi
+    done
 
-  for rc in ${rcs}
-  do
-    if ! grep -Fxq "${line}" "${rc}"; then
-      echo "${line}" >> "${rc}"
-    fi
-  done
-
-  source "${HOME}/.fzf.colors"
+    source "${HOME}/.fzf.colors"
+  fi
 }
 
 set_rofi() {
@@ -184,9 +178,11 @@ set_rofi() {
   local theme=$2
   local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.config"
 
-  check_file ${file}
-
-  cp "${file}" "${HOME}/.config/rofi/config"
+  if ! file_exists ${file}; then
+    err "Rofi theme not found."
+  else
+    cp "${file}" "${HOME}/.config/rofi/config"
+  fi
 }
 
 set_shell() {
@@ -195,11 +191,14 @@ set_shell() {
   local file="${CONFIG_PATH}/${package}/scripts/base16-${theme}.sh"
   local helper="${CONFIG_PATH}/${package}/profile_helper.sh"
 
-  check_file ${helper}
-  check_file ${file}
-
-  eval "$(${helper})"
-  _base16 "${file}"
+  if ! file_exists ${helper}; then
+    err "Shell helper not found."
+  elif ! file_exists ${file}; then
+    err "Shell theme not found."
+  else
+    eval "$(${helper})"
+    _base16 "${file}"
+  fi
 }
 
 set_vim() {
@@ -208,17 +207,19 @@ set_vim() {
   local file="${CONFIG_PATH}/${package}/colors/base16-${theme}.vim"
   local vim_files="${HOME}/.vimrc ${HOME}/.config/nvim/init.vim"
 
-  check_file ${file}
-
-  for vim_file in ${vim_files}; do
-    if file_exists "${vim_file}"; then
-      grep -Evx "(colorscheme|colo).*" "${vim_file}" > /tmp/vim_config
-      rm "${vim_file}.bac"
-      mv "${vim_file}" "${vim_file}.bac"
-      mv /tmp/vim_config "${vim_file}"
-      echo "colorscheme base16-${theme}" >> "${vim_file}"
-    fi
-  done
+  if ! file_exists ${file}; then
+    err "Vim theme not found."
+  else
+    for vim_file in ${vim_files}; do
+      if file_exists "${vim_file}"; then
+        grep -Evx "(colorscheme|colo).*" "${vim_file}" > /tmp/vim_config
+        rm "${vim_file}.bac"
+        mv "${vim_file}" "${vim_file}.bac"
+        mv /tmp/vim_config "${vim_file}"
+        echo "colorscheme base16-${theme}" >> "${vim_file}"
+      fi
+    done
+  fi
 }
 
 set_xresources() {
@@ -226,12 +227,14 @@ set_xresources() {
   local theme=$2
   local file="${CONFIG_PATH}/${package}/xresources/base16-${theme}.Xresources"
 
-  check_file ${file}
+  if ! file_exists ${file}; then
+    err "Xresources theme not found."
+  else
+    cp "${file}" "${HOME}/.Xresources.d/colors"
 
-  cp "${file}" "${HOME}/.Xresources.d/colors"
-
-  # TODO: Check if ~/.Xresources includes colors file.
-  xrdb -load "$HOME/.Xresources"
+    # TODO: Check if ~/.Xresources includes colors file.
+    xrdb -load "$HOME/.Xresources"
+  fi
 }
 
 main() {
@@ -242,7 +245,7 @@ main() {
 
   if [[ -z "${option}" ]]; then
     usage
-    exit 0
+    exit
   fi
 
   case ${option} in
@@ -275,7 +278,7 @@ main() {
       ;;
   esac
 
-  exit 0
+  exit
 }
 
 main "$@"
