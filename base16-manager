@@ -210,7 +210,6 @@ end"
     tr < /tmp/grep_output -d '\000' > /tmp/tr_output
     string="$(cat /tmp/tr_output)"
     grep -v "${string}" "${fish_config}" > /tmp/fish_config
-    grep -v "${string}" "${fish_config}" > /tmp/fish_config
     [[ -f "${fish_config}.bac" ]] && rm "${fish_config}.bac"
     mv ${fish_config} "${fish_config}.bac"
     mv /tmp/fish_config "${fish_config}"
