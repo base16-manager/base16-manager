@@ -191,8 +191,8 @@ set_shell() {
   local file="${CONFIG_PATH}/${package}/scripts/base16-${theme}.sh"
   local helper="${CONFIG_PATH}/${package}/profile_helper.sh"
   local fish_config="${HOME}/.config/fish/config.fish"
-  local regex="if\ status\ --is-interactive(.|\n)*eval\ sh\ \\\$HOME\/(.|\n)*base16-(.*)\.sh(.|\n)*end\n"
-  local fish_string="if status --is-interactive
+  local fish_string="# Base16 Shell
+if status --is-interactive
     eval sh \$HOME/.config/base16-shell/scripts/base16-${theme}.sh
 end"
 
@@ -206,10 +206,7 @@ end"
 
     [[ ! -f ${fish_config} ]] && touch ${fish_config}
 
-    grep -Pzo "${regex}" "${fish_config}" > /tmp/grep_output
-    tr < /tmp/grep_output -d '\000' > /tmp/tr_output
-    string="$(cat /tmp/tr_output)"
-    grep -v "${string}" "${fish_config}" > /tmp/fish_config
+    sed '/^# Base16 Shell$/,/^end$/d' ${fish_config} > /tmp/fish_config
     [[ -f "${fish_config}.bac" ]] && rm "${fish_config}.bac"
     mv ${fish_config} "${fish_config}.bac"
     mv /tmp/fish_config "${fish_config}"
