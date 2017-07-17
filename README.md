@@ -21,6 +21,13 @@ Once you've setup the templates you'd like to use, you're ready to set a theme.
 base16-manager install materia
 ```
 
+### For Mac users
+If you are a Mac user you need to install [Homebrew](https://brew.sh/index_se.html) and then install the appropriate GNU utils as below.
+```sh
+brew install coreutils
+brew install findutils
+```
+
 ## Usage
 ```sh
 Usage: base16-manager [option]
