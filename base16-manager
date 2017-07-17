@@ -202,7 +202,8 @@ set_shell() {
   local theme=$2
   local file="${CONFIG_PATH}/${package}/scripts/base16-${theme}.sh"
   local helper="${CONFIG_PATH}/${package}/profile_helper.sh"
-  local fish_config="${HOME}/.config/fish/config.fish"
+  local fish_dir="${HOME}/.config/fish"
+  local fish_config="${fish_dir}/config.fish"
   local fish_string="# Base16 Shell
 if status --is-interactive
     eval sh \$HOME/.config/base16-shell/scripts/base16-${theme}.sh
@@ -216,13 +217,17 @@ end"
     eval "$(${helper})"
     _base16 "${file}"
 
-    [[ ! -f ${fish_config} ]] && touch ${fish_config}
+    if command -v fish >/dev/null 2>&1; then
+      # Make fish theme permanent
+      [[ ! -d ${fish_dir} ]] && mkdir ${fish_dir}
+      [[ ! -f ${fish_config} ]] && touch ${fish_config}
 
-    sed '/^# Base16 Shell$/,/^end$/d' ${fish_config} > /tmp/fish_config
-    [[ -f "${fish_config}.bac" ]] && rm "${fish_config}.bac"
-    mv ${fish_config} "${fish_config}.bac"
-    mv /tmp/fish_config "${fish_config}"
-    echo "${fish_string}" >> ${fish_config}
+      sed '/^# Base16 Shell$/,/^end$/d' ${fish_config} > /tmp/fish_config
+      [[ -f "${fish_config}.bac" ]] && rm "${fish_config}.bac"
+      mv ${fish_config} "${fish_config}.bac"
+      mv /tmp/fish_config "${fish_config}"
+      echo "${fish_string}" >> ${fish_config}
+    fi
   fi
 }
 
