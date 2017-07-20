@@ -18,7 +18,7 @@ base16-manager install chriskempson/base16-shell
 ### Setting a theme
 Once you've setup the templates you'd like to use, you're ready to set a theme.
 ```sh
-base16-manager install materia
+base16-manager set materia
 ```
 
 ### For Mac users
