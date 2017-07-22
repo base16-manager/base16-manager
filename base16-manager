@@ -73,8 +73,6 @@ install() {
   fi
 
   git clone "${repository}" "$CONFIG_PATH/${template}"
-
-  recache_themes
 }
 
 uninstall() {
@@ -83,8 +81,6 @@ uninstall() {
   check_dir "${CONFIG_PATH}/${template}"
 
   rm -rf "${CONFIG_PATH}/${template}"
-
-  recache_themes
 
   echo "Uninstalled ${template}."
 }
@@ -97,17 +93,11 @@ list() {
   fi
 }
 
-recache_themes() {
-  local themes_path="${CONFIG_PATH}/themes"
-  find ${CONFIG_PATH} -name 'base16-*' -exec sh -c \
-    'echo $(basename {}) | sed "s/\..*//" | sed "s/base16-//"' \; \
-    | sort | uniq > ${themes_path}
-}
-
 list_themes() {
-  local themes_path="${CONFIG_PATH}/themes"
-  touch ${themes_path}
-  column ${themes_path}
+  find ${CONFIG_PATH} -name 'base16-*' -printf "%f\n" | \
+    sed "s/\..*//" | \
+    sed "s/base16-//" | \
+    sort | uniq
 }
 
 update() {
@@ -122,8 +112,6 @@ update() {
     cd "${CONFIG_PATH}/${package}"
     git pull -f origin master
   done
-
-  recache_themes
 
   echo "All packages updated."
 }
