@@ -26,6 +26,7 @@ usage() {
   echo "    install      'username/repository'  Installs a new template"
   echo "    uninstall    'username/repository'  Uninstalls a template"
   echo "    list                                Lists installed templates"
+  echo "    list-themes                         Lists installed themes"
   echo "    update                              Updates installed templates"
   echo "    clean                               Cleans up leftovers"
   echo "    self-update                         Updates this script"
@@ -72,6 +73,8 @@ install() {
   fi
 
   git clone "${repository}" "$CONFIG_PATH/${template}"
+
+  recache_themes
 }
 
 uninstall() {
@@ -80,6 +83,9 @@ uninstall() {
   check_dir "${CONFIG_PATH}/${template}"
 
   rm -rf "${CONFIG_PATH}/${template}"
+
+  recache_themes
+
   echo "Uninstalled ${template}."
 }
 
@@ -89,6 +95,19 @@ list() {
   else
     gfind ${CONFIG_PATH} -maxdepth 2 -mindepth 2 -type d -printf "%P\n"
   fi
+}
+
+recache_themes() {
+  local themes_path="${CONFIG_PATH}/themes"
+  find ${CONFIG_PATH} -name 'base16-*' -exec sh -c \
+    'echo $(basename {}) | sed "s/\..*//" | sed "s/base16-//"' \; \
+    | sort | uniq > ${themes_path}
+}
+
+list_themes() {
+  local themes_path="${CONFIG_PATH}/themes"
+  touch ${themes_path}
+  column ${themes_path}
 }
 
 update() {
@@ -103,6 +122,8 @@ update() {
     cd "${CONFIG_PATH}/${package}"
     git pull -f origin master
   done
+
+  recache_themes
 
   echo "All packages updated."
 }
@@ -289,6 +310,9 @@ main() {
       ;;
     "list")
       list
+      ;;
+    "list-themes")
+      list_themes
       ;;
     "update")
       update

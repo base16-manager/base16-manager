@@ -36,6 +36,7 @@ Options:
     install      'username/repository'  Installs a new template
     uninstall    'username/repository'  Uninstalls a template
     list                                Lists installed templates
+    list-themes                         Lists installed themes
     update                              Updates installed templates
     clean                               Cleans up leftovers
     self-update                         Updates this script
