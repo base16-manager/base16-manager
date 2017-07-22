@@ -8,24 +8,38 @@
 ### For Mac users
 If you are a Mac user you need to install [Homebrew](https://brew.sh/index_se.html) and then install the appropriate GNU utils as below.
 ```sh
-brew install coreutils
-brew install findutils
+$ brew install coreutils
+$ brew install findutils
 ```
 
 ## Installation
-Download the `base16-manager` script and add it to your `$PATH`.
+### Arch Linux
+```sh
+$ yaourt -S base16-manager
+```
+
+### Other Linux distros
+Download the Git repo and run:
+```sh
+# make install
+```
+
+To remove, simply run:
+```sh
+# make clean
+```
 
 ## Setup
 ### Installing templates
 Before you can set a new theme, you have to install at least 1 template ([found here](https://github.com/chriskempson/base16)).
 ```sh
-base16-manager install chriskempson/base16-shell
+$ base16-manager install chriskempson/base16-shell
 ```
 
 ### Setting a theme
 Once you've setup the templates you'd like to use, you're ready to set a theme.
 ```sh
-base16-manager set materia
+$ base16-manager set materia
 ```
 
 ## Usage
