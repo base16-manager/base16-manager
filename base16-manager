@@ -94,7 +94,7 @@ list() {
 }
 
 list_themes() {
-  find ${CONFIG_PATH} -name 'base16-*' -printf "%f\n" | \
+  find ${CONFIG_PATH} -type f -name 'base16-*' -printf "%f\n" | \
     sed "s/\..*//" | \
     sed "s/base16-//" | \
     sort | uniq
