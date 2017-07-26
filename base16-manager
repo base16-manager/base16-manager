@@ -16,7 +16,7 @@ readonly SCRIPT_PATH=$(dirname ${SCRIPT})
 readonly CONFIG_PATH="${HOME}/.base16-manager"
 
 err() {
-  echo "$@" >&2
+  echo "ERROR: $@" >&2
 }
 
 usage() {
