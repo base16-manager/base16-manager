@@ -159,6 +159,9 @@ set_theme() {
       "chriskempson/base16-xresources")
         set_xresources "${package}" "${theme}"
         ;;
+      "khamer/base16-dunst")
+        set_dunst "${package}" "${theme}"
+        ;;
       "nicodebo/base16-fzf")
         set_fzf "${package}" "${theme}"
         ;;
@@ -169,6 +172,25 @@ set_theme() {
   done
 
   echo "Set theme to ${theme}. You may need to restart DE and terminals."
+}
+
+set_dunst() {
+  local package=$1
+  local theme=$2
+  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.dunstrc"
+  local config="${HOME}/.config/dunst/dunstrc"
+
+  if ! file_exists "${file}"; then
+    err "Dunst theme not found."
+  else
+    sed '/^\[base16_low\]$/,/^\s+foreground(.*)$/d' "${config}" > /tmp/dunstrc
+    [[ -f "${config}.bac" ]] && rm "${config}.bac"
+    mv ${config} "${config}.bac"
+    cat /tmp/dunstrc "${file}" > "${config}"
+
+    # Kill dunst to force reload new configuration.
+    killall dunst
+  fi
 }
 
 set_fzf() {
