@@ -147,20 +147,20 @@ set_theme() {
 
   for package in ${packages}; do
     case "${package}" in
+      "0xdec/base16-rofi")
+        set_rofi "${package}" "${theme}"
+        ;;
       "chriskempson/base16-shell")
-        set_shell ${package} ${theme}
+        set_shell "${package}" "${theme}"
         ;;
       "chriskempson/base16-vim")
-        set_vim ${package} ${theme}
+        set_vim "${package}" "${theme}"
         ;;
       "chriskempson/base16-xresources")
-        set_xresources ${package} ${theme}
-        ;;
-      "0xdec/base16-rofi")
-        set_rofi ${package} ${theme}
+        set_xresources "${package}" "${theme}"
         ;;
       "nicodebo/base16-fzf")
-        set_fzf ${package} ${theme}
+        set_fzf "${package}" "${theme}"
         ;;
       *)
         err "Package ${package} is not (yet) supported."
