@@ -189,7 +189,7 @@ set_dunst() {
     cat /tmp/dunstrc "${file}" > "${config}"
 
     # Kill dunst to force reload new configuration.
-    killall dunst
+    [[ ! -z "$(pidof dunst)" ]] && killall dunst
   fi
 }
 
