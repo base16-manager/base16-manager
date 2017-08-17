@@ -1,4 +1,4 @@
-# base16-manager
+# Base16 Manager
 `base16-manager` is a command line tool to install base16 templates and set themes globally. This helps a lot if you have multiple base16 templates installed and you like to shift themes every now and then.
 
 All PRs welcome!
