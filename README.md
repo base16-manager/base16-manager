@@ -59,9 +59,9 @@ Options:
 ```
 
 ## Currently supported templates
-* ([0xdec/base16-rofi](https://github.com/0xdec/base16-rofi))
-* ([chriskempson/base16-shell](https://github.com/chriskempson/base16-shell))
-* ([chriskempson/base16-vim](https://github.com/chriskempson/base16-vim))
-* ([chriskempson/base16-xresources](https://github.com/chriskempson/base16-xresources))
-* ([khamer/base16-dunst](https://github.com/khamer/base16-dunst))
-* ([nicodebo/base16-fzf](https://github.com/nicodebo/base16-fzf))
+* [0xdec/base16-rofi](https://github.com/0xdec/base16-rofi)
+* [chriskempson/base16-shell](https://github.com/chriskempson/base16-shell)
+* [chriskempson/base16-vim](https://github.com/chriskempson/base16-vim)
+* [chriskempson/base16-xresources](https://github.com/chriskempson/base16-xresources)
+* [khamer/base16-dunst](https://github.com/khamer/base16-dunst)
+* [nicodebo/base16-fzf](https://github.com/nicodebo/base16-fzf)
