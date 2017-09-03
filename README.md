@@ -31,6 +31,14 @@ To remove, simply run:
 # make clean
 ```
 
+### macOS
+Install using [Homebrew](https://brew.sh/).
+```sh
+brew tap chrokh/tap
+brew install base16-manager
+```
+
+
 ## Setup
 ### Installing templates
 Before you can set a new theme, you have to install at least 1 template ([found here](https://github.com/chriskempson/base16)).
