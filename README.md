@@ -16,6 +16,7 @@ $ brew install findutils
 
 ## Installation
 ### Arch Linux
+Install from the [AUR](https://aur.archlinux.org/packages/base16-manager).
 ```sh
 $ yaourt -S base16-manager
 ```
@@ -34,8 +35,8 @@ To remove, simply run:
 ### macOS
 Install using [Homebrew](https://brew.sh/).
 ```sh
-brew tap chrokh/tap
-brew install base16-manager
+$ brew tap chrokh/tap
+$ brew install base16-manager
 ```
 
 
