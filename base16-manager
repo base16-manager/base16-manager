@@ -238,7 +238,7 @@ set_shell() {
   local fish_config="${fish_dir}/config.fish"
   local fish_string="# Base16 Shell
 if status --is-interactive
-    eval sh \$HOME/.config/base16-shell/scripts/base16-${theme}.sh
+    eval sh $file
 end"
 
   if ! file_exists ${helper}; then
