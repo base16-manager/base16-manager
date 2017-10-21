@@ -18,7 +18,7 @@ $ brew install findutils
 ### Arch Linux
 Install from the [AUR](https://aur.archlinux.org/packages/base16-manager).
 ```sh
-$ yaourt -S base16-manager
+$ yaourt -S base16-manager-git
 ```
 
 ### Other Linux distros
