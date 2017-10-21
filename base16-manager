@@ -206,11 +206,7 @@ set_fzf() {
     cp "${file}" "${HOME}/.fzf.colors"
 
     for config in ${configs}; do
-      if ! file_exists "${HOME}/${config}"; then
-        touch "${HOME}/${config}"
-      fi
-
-      if ! grep -Fxq "${line}" "${HOME}/${config}"; then
+      if file_exists "${HOME}/${config}" && ! grep -Fxq "${line}" "${HOME}/${config}"; then
         echo "${line}" >> "${HOME}/${config}"
       fi
     done
