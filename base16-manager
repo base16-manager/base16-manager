@@ -196,9 +196,15 @@ set_dunst() {
 set_fzf() {
   local package=$1
   local theme=$2
-  local file="${CONFIG_PATH}/${package}/build_scheme/base16-${theme}.config"
+  local file=""
   local line="[ -f ~/.fzf.colors ] && source ~/.fzf.colors"
   local configs=".bashrc .zshrc .config/fish/config.fish"
+
+  if command -v fish >/dev/null 2>&1; then
+    file="${CONFIG_PATH}/${package}/fish/base16-${theme}.fish"
+  else
+    file="${CONFIG_PATH}/${package}/bash/base16-${theme}.config"
+  fi
 
   if ! file_exists "${file}"; then
     err "FZF theme not found."
