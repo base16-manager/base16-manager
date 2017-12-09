@@ -58,6 +58,7 @@ $ base16-manager set materia
 Usage: base16-manager [option]
 Options:
     set          'base16-theme'         Sets the theme
+    set-random                          Sets to a random installed theme
     install      'username/repository'  Installs a new template
     uninstall    'username/repository'  Uninstalls a template
     list                                Lists installed templates

@@ -23,6 +23,7 @@ usage() {
   echo "Usage: base16-manager [option]"
   echo "Options:"
   echo "    set          'base16-theme'         Sets the theme"
+  echo "    set-random                          Sets to a random installed theme"
   echo "    install      'username/repository'  Installs a new template"
   echo "    uninstall    'username/repository'  Uninstalls a template"
   echo "    list                                Lists installed templates"
@@ -94,10 +95,12 @@ list() {
 }
 
 list_themes() {
+  local sort_option=$1
+
   find ${CONFIG_PATH} -type f -name 'base16-*' | \
     sed "s/.*\/base16-//" | \
     sed "s/\..*//" | \
-    sort | uniq
+    sort $sort_option | uniq
 }
 
 update() {
@@ -286,6 +289,10 @@ set_vim() {
   fi
 }
 
+set_random() {
+  set_theme $(list_themes -R | head -n1 | awk "{print $1;}")
+}
+
 set_xresources() {
   local package=$1
   local theme=$2
@@ -339,6 +346,9 @@ main() {
       ;;
     "self-update")
       self_update
+      ;;
+    "set-random")
+      set_random
       ;;
     *)
       usage
