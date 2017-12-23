@@ -272,18 +272,14 @@ set_vim() {
   local package=$1
   local theme=$2
   local file="${CONFIG_PATH}/${package}/colors/base16-${theme}.vim"
-  local vim_files="${HOME}/.vimrc ${HOME}/.config/nvim/init.vim"
+  local vim_dirs="${HOME}/.vim ${HOME}/.config/nvim"
 
   if ! file_exists ${file}; then
     err "Vim theme not found."
   else
-    for vim_file in ${vim_files}; do
-      if file_exists "${vim_file}"; then
-        grep -Evx "(colorscheme|colo).*" "${vim_file}" > /tmp/vim_config
-        rm "${vim_file}.bac"
-        mv "${vim_file}" "${vim_file}.bac"
-        mv /tmp/vim_config "${vim_file}"
-        echo "colorscheme base16-${theme}" >> "${vim_file}"
+    for vim_dir in ${vim_dirs}; do
+      if dir_exists "${vim_dir}"; then
+        echo "colorscheme base16-${theme}" > "${vim_dir}/colorscheme.vim"
       fi
     done
   fi
