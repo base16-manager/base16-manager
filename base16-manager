@@ -168,6 +168,9 @@ set_theme() {
       "nicodebo/base16-fzf")
         set_fzf "${package}" "${theme}"
         ;;
+      "khamer/base16-termite")
+	set_termite "${package}" "${theme}"
+	;;
       *)
         err "Package ${package} is not (yet) supported."
         ;;
@@ -233,6 +236,25 @@ set_rofi() {
     cp "${file}" "${HOME}/.config/rofi/config"
   fi
 }
+set_termite() {
+  local package=$1
+  local theme=$2
+  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.config"
+  local termite_dir="${HOME}/.config/termite"
+  local config="${termite_dir}/config"
+
+  if ! file_exists ${file}; then
+    err "Termite theme not found."
+  else
+    check_dir $termite_dir
+    [[ -f "${config}.bac" ]] && rm "${config}.bac"
+    [[ -f "${config}" ]] && cp ${config} "${config}.bac" || touch ${config}
+    sed '/^\[colors\]$/,/^\[\w*\]$/{/^\[\w*\]$/!d}' ${config} | grep --invert-match '\[colors\]' > /tmp/termiterc
+    cp /tmp/termiterc ${config}
+    cat ${file} >> ${config}
+  fi
+}
+
 
 set_shell() {
   local package=$1
