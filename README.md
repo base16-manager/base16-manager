@@ -74,4 +74,5 @@ Options:
 * [chriskempson/base16-vim](https://github.com/chriskempson/base16-vim)
 * [chriskempson/base16-xresources](https://github.com/chriskempson/base16-xresources)
 * [khamer/base16-dunst](https://github.com/khamer/base16-dunst)
+* [khamer/base16-termite](https://github.com/khamer/base16-termite)
 * [nicodebo/base16-fzf](https://github.com/nicodebo/base16-fzf)
