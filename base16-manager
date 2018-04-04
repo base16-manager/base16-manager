@@ -252,6 +252,9 @@ set_termite() {
     sed '/^\[colors\]$/,/^\[\w*\]$/{/^\[\w*\]$/!d}' ${config} | grep --invert-match '\[colors\]' > /tmp/termiterc
     cp /tmp/termiterc ${config}
     cat ${file} >> ${config}
+
+    # Reload termite configuration in-place.
+    killall -USR1 termite
   fi
 }
 
