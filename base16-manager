@@ -254,8 +254,8 @@ set_qutebrowser() {
 		  sed -i '/^#[[:print:]]*scheme/d' "$config"
 		  sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$config" #remove newlines
 		  # append colorscheme
-		  printf "\\n" >> "${HOME}/.config/qutebrowser/config.py"
-		  cat "${file}" >> "${HOME}/.config/qutebrowser/config.py"
+		  printf "\\n" >> "$config"
+		  cat "${file}" >> "$config"
 	  fi
   fi
 }
