@@ -76,3 +76,4 @@ Options:
 * [khamer/base16-dunst](https://github.com/khamer/base16-dunst)
 * [khamer/base16-termite](https://github.com/khamer/base16-termite)
 * [nicodebo/base16-fzf](https://github.com/nicodebo/base16-fzf)
+* [theova/base16-qutebrowser](https://github.com/theova/base16-qutebrowser)
