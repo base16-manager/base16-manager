@@ -348,50 +348,29 @@ set_xresources() {
   local package=$1
   local theme=$2
   local xres=${HOME}/.Xresources
-  local xres_tmp=${xres}.tmp
   local file="${CONFIG_PATH}/${package}/xresources/base16-${theme}.Xresources"
   local xres_color="${HOME}/.Xresources.d/colors"
 
-  if ! file_exists ${file}; then
+  if ! file_exists "${file}"; then
     err "Xresources theme not found."
-  else
-	  cp "${file}" "$xres_color"
+  else 
+    cp "${file}" "$xres_color"
 
-    #---------------------------------------------#
-    # Check if ~/.Xresources includes colors file.#
-    #---------------------------------------------#
-
-    # comment all lines concerning colors.
-    touch "$xres_tmp" # create file
-    > "$xres_tmp" # clear it
-
-    while read -r p; do
-	   # if line contains the path to the color-config already, 
-	   # copy it to the new file
-           if echo "$p" | grep -iq "^\#include\s\"$xres_color\""; then
-		   xres_color_included=true
-	   	   echo "$p" >> "$xres_tmp"
-
-           # if the line doesn't contain color and isn't already commented out, 
-           # then comment it out.
-	   elif echo "$p" | grep -Eiq "color|foreground:|background:" && 
-		   ! echo "$p" | grep -q "^\!"; then
-		echo "!$p" >> "$xres_tmp"
-           else
-		echo "$p" >> "$xres_tmp"
-	   fi
-
-    done <"$xres"
-
-    # insert #include	".Xresources.d/colors" if needed
-    if [ ! $xres_color_included = true ]; then
-	    echo "#include	\"$xres_color\"" >> "$xres_tmp"
+    if file_exists "$xres"; then
+      # clean $xres and remove all lines containing color definitions
+      sed -i '/^\#ifdef background_opacity/,+4d' "$xres" #ifdef till #endif
+      sed -i '/[B|b]ase[[:xdigit:]]/d' "$xres" # base16
+      sed -i '/^\! Scheme/d' "$xres" # comments
+      sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$xres" #remove newlines
+    fi
+   
+    # if $xres doesn't exist or doesn't include $xres_color, do it.
+    if ! file_exists "$xres" || ! grep -iq "^\\#include\\s\"$xres_color\"" "$xres"
+    then
+       echo "#include	\"$xres_color\"" >> "$xres"
     fi
 
-    # replace the old file
-    mv "$xres_tmp" "$xres"
-
-    xrdb -load "$xres"
+    xrdb -load "$xres" # reload colors
   fi
 }
 
