@@ -7,13 +7,6 @@ All PRs welcome!
 * bash
 * git
 
-### For Mac users
-If you are a Mac user you need to install [Homebrew](https://brew.sh/index_se.html) and then install the appropriate GNU utils as below.
-```sh
-$ brew install coreutils
-$ brew install findutils
-```
-
 ## Installation
 ### Arch Linux
 Install from the [AUR](https://aur.archlinux.org/packages/base16-manager-git).
