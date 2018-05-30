@@ -127,18 +127,6 @@ clean() {
   echo "Cleaned up ${CONFIG_PATH}."
 }
 
-self_update() {
-  cd "${SCRIPT_PATH}"
-  mv "base16-manager" "base16-manager.old"
-
-  curl -o "base16-manager" \
-    "https://raw.githubusercontent.com/AuditeMarlow/base16-manager/master/base16-manager"
-
-  chmod +x "base16-manager"
-
-  echo "Updated base16-manager."
-}
-
 set_theme() {
   local theme=$1
   local packages=$(list)
