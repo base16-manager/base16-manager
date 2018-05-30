@@ -352,12 +352,12 @@ set_xresources() {
   local theme=$2
   local xres=${HOME}/.Xresources
   local file="${CONFIG_PATH}/${package}/xresources/base16-${theme}.Xresources"
-  local xres_color="${HOME}/.Xresources.d/colors"
+  local xres_color=".Xresources.d/colors"
 
   if ! file_exists "${file}"; then
     err "Xresources theme not found."
   else 
-    cp "${file}" "$xres_color"
+    cp "${file}" "${HOME}/${xres_color}"
 
     if file_exists "$xres"; then
       # clean $xres and remove all lines containing color definitions
@@ -366,11 +366,12 @@ set_xresources() {
       sed -i '/^\! Scheme/d' "$xres" # comments
       sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$xres" #remove newlines
     fi
-   
+
     # if $xres doesn't exist or doesn't include $xres_color, do it.
-    if ! file_exists "$xres" || ! grep -iq "^\\#include\\s\"$xres_color\"" "$xres"
+    if ! file_exists "$xres" || \
+        ! grep -iq "^\\#include\\s\"\(.*\)${xres_color}\"$" "${xres}"
     then
-       echo "#include	\"$xres_color\"" >> "$xres"
+       echo "#include \"${xres_color}\"" >> "${xres}"
     fi
 
     xrdb -load "$xres" # reload colors
