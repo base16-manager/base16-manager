@@ -2,17 +2,6 @@
 #
 # Install base16 templates and set themes globally.
 
-is_mac() {
-  [[ "$(uname)" == "Darwin" ]]
-}
-
-readonly SCRIPT_NAME="$0"
-if ! is_mac; then
-  readonly SCRIPT=$(readlink -f "${SCRIPT_NAME}")
-else
-  readonly SCRIPT=$(greadlink -f "${SCRIPT_NAME}")
-fi
-readonly SCRIPT_PATH=$(dirname ${SCRIPT})
 readonly CONFIG_PATH="${HOME}/.base16-manager"
 
 err() {
