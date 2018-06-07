@@ -15,6 +15,7 @@ usage() {
   echo "    set-random                          Sets to a random installed theme"
   echo "    install      'username/repository'  Installs a new template"
   echo "    uninstall    'username/repository'  Uninstalls a template"
+  echo "    list-support                        Lists supported templates"
   echo "    list                                Lists installed templates"
   echo "    list-themes                         Lists installed themes"
   echo "    update                              Updates installed templates"
@@ -93,6 +94,18 @@ list_themes() {
     sed "s/\..*//" | \
     sort $sort_option | uniq
 }
+
+list_support() {
+  echo "0xdec/base16-rofi"
+  echo "chriskempson/base16-shell"
+  echo "chriskempson/base16-vim"
+  echo "chriskempson/base16-xresources"
+  echo "khamer/base16-dunst"
+  echo "khamer/base16-termite"
+  echo "nicodebo/base16-fzf"
+  echo "theova/base16-qutebrowser"
+}
+
 
 update() {
   local packages=$(list)
@@ -382,6 +395,9 @@ main() {
       ;;
     "list-themes")
       list_themes
+      ;;
+    "list-support")
+      list_support
       ;;
     "update")
       update
