@@ -11,15 +11,16 @@ err() {
 usage() {
   echo "Usage: base16-manager [option]"
   echo "Options:"
-  echo "    set          'base16-theme'         Sets the theme"
-  echo "    set-random                          Sets to a random installed theme"
-  echo "    install      'username/repository'  Installs a new template"
-  echo "    uninstall    'username/repository'  Uninstalls a template"
-  echo "    list-support                        Lists supported templates"
-  echo "    list                                Lists installed templates"
-  echo "    list-themes                         Lists installed themes"
-  echo "    update                              Updates installed templates"
-  echo "    clean                               Cleans up leftovers"
+  echo " set              'base16-theme'         Sets the theme"
+  echo " set-random                              Sets to a random installed theme"
+  echo " install          'username/repository'  Installs a new template"
+  echo " uninstall        'username/repository'  Uninstalls a template"
+  echo " list                                    Lists installed templates"
+  echo " list-support                            Lists supported templates"
+  echo " list-installable                        Lists installable templates"
+  echo " list-themes                             Lists installed themes"
+  echo " update                                  Updates installed templates"
+  echo " clean                                   Cleans up leftovers"
 }
 
 dir_exists() {
@@ -106,6 +107,20 @@ list_support() {
   echo "theova/base16-qutebrowser"
 }
 
+list_installable() {
+  local RESULT=""
+  for REPO in $(base16-manager list-support); do
+    if ! grep -q "$REPO" <<< "$(base16-manager list)"  ; then
+      if [ -z $RESULT ]; then
+        RESULT="$REPO"
+      else
+	local NEWLINE=$'\n'
+	RESULT="${RESULT}${NEWLINE}${REPO}"
+      fi
+    fi
+  done
+  echo "$RESULT"
+}
 
 update() {
   local packages=$(list)
@@ -398,6 +413,9 @@ main() {
       ;;
     "list-support")
       list_support
+      ;;
+    "list-installable")
+      list_installable
       ;;
     "update")
       update
