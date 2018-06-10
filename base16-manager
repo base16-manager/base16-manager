@@ -23,6 +23,11 @@ usage() {
   echo " clean                                   Cleans up leftovers"
 }
 
+usage_short() {
+  # print short list of posssible commands (set, set-random, install, ...)
+  base16-manager | sed 1,2d | cut -s -d ' ' -f 2
+}
+
 dir_exists() {
   local dir=$1
 
@@ -429,6 +434,9 @@ main() {
       ;;
     "set-random")
       set_random
+      ;;
+    "usage-short")
+      usage_short
       ;;
     *)
       usage
