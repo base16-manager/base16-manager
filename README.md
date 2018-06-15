@@ -40,6 +40,11 @@ Before you can set a new theme, you have to install at least 1 template ([found 
 $ base16-manager install chriskempson/base16-shell
 ```
 
+### Note
+If you are using `chriskempson/base16-vim` with Vim, you should add
+`source ~/.vim/colorscheme.vim` to your `.vimrc`. If you are using NeoVim
+instead, you should add `source ~/.config/nvim/colorscheme.vim` instead.
+
 ### Setting a theme
 Once you've setup the templates you'd like to use, you're ready to set a theme.
 ```sh
