@@ -19,7 +19,6 @@ usage() {
   echo "    list-themes                         Lists installed themes"
   echo "    update                              Updates installed templates"
   echo "    clean                               Cleans up leftovers"
-  echo "    self-update                         Updates this script"
 }
 
 dir_exists() {
@@ -63,6 +62,8 @@ install() {
   fi
 
   git clone "${repository}" "$CONFIG_PATH/${template}"
+
+  echo "${template}" >> "$CONFIG_PATH"/installed
 }
 
 uninstall() {
@@ -70,17 +71,18 @@ uninstall() {
 
   check_dir "${CONFIG_PATH}/${template}"
 
-  rm -rf "${CONFIG_PATH}/${template}"
+  rm -rf "${CONFIG_PATH:?}/${template}"
+
+  tmp=$(mktemp)
+
+  grep -v "$template" "$CONFIG_PATH"/installed > "$tmp"
+   mv "$tmp" "$CONFIG_PATH"/installed
 
   echo "Uninstalled ${template}."
 }
 
 list() {
-  if ! is_mac; then
-    find ${CONFIG_PATH} -maxdepth 2 -mindepth 2 -type d -printf "%P\n"
-  else
-    gfind ${CONFIG_PATH} -maxdepth 2 -mindepth 2 -type d -printf "%P\n"
-  fi
+  cat "${CONFIG_PATH}"/installed | sort
 }
 
 list_themes() {
@@ -390,9 +392,6 @@ main() {
       ;;
     "clean")
       clean
-      ;;
-    "self-update")
-      self_update
       ;;
     "set-random")
       set_random
