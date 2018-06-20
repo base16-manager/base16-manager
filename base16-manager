@@ -89,7 +89,14 @@ uninstall() {
 }
 
 list() {
-  cat "${CONFIG_PATH}"/installed | sort
+  # iterate over each MAINTAINER and REPOSITORY stored in $CONFIG_PATH
+  for MAINTAINER in "${CONFIG_PATH}"/*; do
+    for REPOSITORY in "${MAINTAINER}"/*; do
+      [[ -e "$REPOSITORY" ]] || break # handle empty $CONFIG_PATH
+      [[ -d "$REPOSITORY" ]] || break # handle files
+      echo "$(basename -- "${MAINTAINER}")/$(basename -- "${REPOSITORY}")"
+    done 
+  done 
 }
 
 list_themes() {
