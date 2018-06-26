@@ -182,16 +182,19 @@ set_theme() {
         set_xresources "${package}" "${theme}"
         ;;
       "khamer/base16-dunst")
-        set_dunst "${package}" "${theme}"
+        # set_dunst "${package}" "${theme}"
         ;;
       "nicodebo/base16-fzf")
         set_fzf "${package}" "${theme}"
         ;;
       "khamer/base16-termite")
-        set_termite "${package}" "${theme}"
+        set_generic "${package}" "${theme}" "#" "=" "$HOME/.config/termite/config"
+        # Reload termite configuration in-place.
+        killall -USR1 termite
         ;;
       "theova/base16-qutebrowser")
-        set_generic "${package}" "${theme}" "#" "=" "$HOME/.config/qutebrowser/config.py"
+        set_generic "${package}" "${theme}" "#" "=" \
+          "$HOME/.config/qutebrowser/config.py"
         ;;
       *)
         err "Package ${package} is not (yet) supported."
@@ -209,11 +212,13 @@ set_generic() {
   local assign_string=$4
   local config=$5
   local config_tmp
-  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.config.py"
+  local file
   local left
   local line
   local number
 
+  # get template
+  file=$(eval ls "${CONFIG_PATH}/${package}/themes/base16-${theme}.*")
 
   # Error handling for inexisting files
   if ! file_exists "${file}"; then
@@ -237,7 +242,7 @@ set_generic() {
     # delete all lines ($line) containing $left
     # delte all comments above $line
     if ! [[ -z $left ]]; then
-      lines=$(grep -ohn "$left" "$config_tmp"  | cut -d : -f 1)
+      lines=$(grep -Fohn "$left" "$config_tmp"  | cut -d : -f 1)
          for number in $lines; do
           sed -i "$number"'s/.*//' "$config_tmp"
 
@@ -252,13 +257,17 @@ set_generic() {
   done <"$file"
 
   #remove special strings (e.g. in template headers)
+  sed -i '/'"^$cmnt_string"'.*[b,B]ase16/d' "$config_tmp"
   sed -i '/'"^$cmnt_string"'.*scheme by/d' "$config_tmp"
+  sed -i '/'"^$cmnt_string"'.*Author:/d' "$config_tmp"
 
   # remove parts with more than one empty line
   sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$config_tmp"
+  # remove first line, if it's empty
+  sed -i '1{/^[[:space:]]*$/d}' "$config_tmp"
 
   # create a backup
-  cp "$config" "$config.bak"
+  cp "$config" "$config.bac"
 
   # append colorscheme
   printf "\\n" >> "$config_tmp"
