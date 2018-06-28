@@ -218,7 +218,7 @@ set_generic() {
   local number
 
   # get template
-  file=$(eval ls "${CONFIG_PATH}/${package}/themes/base16-${theme}.*")
+  file=$(ls "${CONFIG_PATH}/${package}/themes/base16-${theme}."*)
 
   # Error handling for inexisting files
   if ! file_exists "${file}"; then
