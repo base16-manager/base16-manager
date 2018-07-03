@@ -216,12 +216,11 @@ set_generic() {
   local line
   local number
 
-  # get template
-  file=$(find "${CONFIG_PATH}/${package}" -type f -name "base16-$theme.*")
-
-  # Error handling for inexisting files
-  if ! file_exists "${file}"; then
-    err "$package theme not found."
+  # get template and handling for inexisting templates
+  if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
+    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."* ) 
+  else
+    err "$package: theme $theme not found."
     return 1
   fi
 
@@ -242,11 +241,11 @@ set_generic() {
     # delte all comments above $line
     if ! [[ -z $left ]]; then
       lines=$(grep -Fohn "$left" "$config_tmp"  | cut -d : -f 1)
+
       for number in $lines; do
         sed -i "$number"'s/.*//' "$config_tmp"
 
-        while  sed "$(( number - 1 ))"'!d' "$config_tmp" | grep -q "^$cmnt_string"
-        do
+        while  (( number > 1 )) && sed "$(( number - 1 ))"'!d' "$config_tmp" | grep -q "^$cmnt_string"; do
           sed -i "$(( number - 1 ))"'s/.*//' "$config_tmp"
           number=$((number - 1))
         done
