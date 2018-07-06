@@ -116,6 +116,7 @@ list_support() {
   echo "khamer/base16-dunst"
   echo "khamer/base16-termite"
   echo "nicodebo/base16-fzf"
+  echo "nicodebo/base16-zathura"
   echo "theova/base16-qutebrowser"
 }
 
@@ -186,6 +187,10 @@ set_theme() {
         ;;
       "nicodebo/base16-fzf")
         set_fzf "${package}" "${theme}"
+        ;;
+      "nicodebo/base16-zathura")
+        set_generic "${package}" "${theme}" "#" ' ' \
+          "$HOME/.config/zathura/config"
         ;;
       "khamer/base16-termite")
         set_generic "${package}" "${theme}" "#" "=" "$HOME/.config/termite/config"
