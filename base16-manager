@@ -171,7 +171,7 @@ set_theme() {
   for package in ${packages}; do
     case "${package}" in
       "0xdec/base16-rofi")
-        set_rofi "${package}" "${theme}"
+        set_by_copy "${package}" "${theme}" "$HOME/.config/rofi/config"
         ;;
       "chriskempson/base16-shell")
         set_shell "${package}" "${theme}"
@@ -284,6 +284,26 @@ set_generic() {
   cp "$config_tmp" "$config"
 }
 
+set_by_copy() {
+  local package=$1
+  local theme=$2
+  local config=$3
+  local file
+
+  # get template and handling for inexisting templates
+  if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
+    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."* ) 
+  else
+    err "$package: theme $theme not found."
+    return 1
+  fi
+
+  # create a backup
+  cp "$config" "$config.bac"
+
+  # copy template to the config location.
+  cp "${file}" "$config"
+}
 
 set_dunst() {
   local package=$1
@@ -330,17 +350,6 @@ set_fzf() {
   fi
 }
 
-set_rofi() {
-  local package=$1
-  local theme=$2
-  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.config"
-
-  if ! file_exists ${file}; then
-    err "Rofi theme not found."
-  else
-    cp "${file}" "${HOME}/.config/rofi/config"
-  fi
-}
 
 set_shell() {
   local package=$1
