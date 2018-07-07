@@ -190,7 +190,7 @@ set_theme() {
         ;;
       "nicodebo/base16-zathura")
         set_generic "${package}" "${theme}" "#" ' ' \
-          "$HOME/.config/zathura/config"
+          "$HOME/.config/zathura/zathurarc"
         ;;
       "khamer/base16-termite")
         set_generic "${package}" "${theme}" "#" "=" "$HOME/.config/termite/config"
