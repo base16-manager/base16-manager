@@ -83,7 +83,7 @@ uninstall() {
   tmp=$(mktemp)
 
   grep -v "$template" "$CONFIG_PATH"/installed > "$tmp"
-   mv "$tmp" "$CONFIG_PATH"/installed
+  mv "$tmp" "$CONFIG_PATH"/installed
 
   echo "Uninstalled ${template}."
 }
@@ -188,10 +188,12 @@ set_theme() {
         set_fzf "${package}" "${theme}"
         ;;
       "khamer/base16-termite")
-        set_termite "${package}" "${theme}"
+        set_generic "${package}" "${theme}" "#" "=" "$HOME/.config/termite/config"
+        killall -USR1 termite  # Reload termite configuration in-place.
         ;;
       "theova/base16-qutebrowser")
-        set_qutebrowser "${package}" "${theme}"
+        set_generic "${package}" "${theme}" "#" "=" \
+          "$HOME/.config/qutebrowser/config.py"
         ;;
       *)
         err "Package ${package} is not (yet) supported."
@@ -201,6 +203,82 @@ set_theme() {
 
   echo "Set theme to ${theme}. You may need to restart DE and terminals."
 }
+
+set_generic() {
+  local package=$1
+  local theme=$2
+  local cmnt_string=$3
+  local assign_string=$4
+  local config=$5
+  local config_tmp
+  local file
+  local left
+  local line
+  local number
+
+  # get template and handling for inexisting templates
+  if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
+    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."* ) 
+  else
+    err "$package: theme $theme not found."
+    return 1
+  fi
+
+  # work with a temporary config copy
+  config_tmp=/tmp/base16_manager_$(basename "$config")
+  cp "$config" "$config_tmp"
+
+
+  while read -r line; do
+    # get left side of each assignement
+    left=$(echo "$line" | cut -d "$assign_string" -f 1)
+    left=$(echo "$left" | xargs) # remove trailing whitespaces
+    left=$(echo "$left" | sed 's/\//\\\//g') # escape slashes
+
+
+    # if $left found, then
+    # delete all lines ($line) containing $left
+    # delte all comments above $line
+    if ! [[ -z $left ]]; then
+      lines=$(grep -Fohn "$left" "$config_tmp"  | cut -d : -f 1)
+
+      for number in $lines; do
+        sed -i "$number"'s/.*//' "$config_tmp"
+
+        while  (( number > 1 )) && sed "$(( number - 1 ))"'!d' "$config_tmp" | grep -q "^$cmnt_string"; do
+          sed -i "$(( number - 1 ))"'s/.*//' "$config_tmp"
+          number=$((number - 1))
+        done
+      done
+    fi
+
+  done <"$file"
+
+  #remove special strings (e.g. in template headers)
+  sed -i '/'"^$cmnt_string"'.*[b,B]ase16/d' "$config_tmp"
+  sed -i '/'"^$cmnt_string"'.*scheme by/d' "$config_tmp"
+  sed -i '/'"^$cmnt_string"'.*Author:/d' "$config_tmp"
+
+  # remove parts with more than one empty line
+  sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$config_tmp"
+  # remove first line, if it's empty
+  sed -i '1{/^[[:space:]]*$/d}' "$config_tmp"
+
+  # create a backup
+  cp "$config" "$config.bac"
+
+  # append a line break, if last line is not empty.
+  if ! [[ -z $(tail -1 "$config_tmp") ]]; then
+    printf "\\n" >> "$config_tmp"
+  fi
+
+  # append colorscheme
+  cat "$file" >> "$config_tmp"
+
+  # copy temporary file to the right place
+  cp "$config_tmp" "$config"
+}
+
 
 set_dunst() {
   local package=$1
@@ -247,36 +325,6 @@ set_fzf() {
   fi
 }
 
-set_qutebrowser() {
-  local package=$1
-  local theme=$2
-  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.config.py"
-  local config_folder="${HOME}/.config/qutebrowser"
-  local config="$config_folder/config.py"
-
-  if ! file_exists "${file}"; then
-    err "qutebrowser theme not found."
-  else
-    mkdir -p "$config_folder" # create folder if it doesn't already exist.
-    if [ -f "$config" ]; then
-      # remove existing definitions and belonging comments
-      sed -i '/[B|b]ase[[:xdigit:]]./d' "$config"
-      sed -i '/c.colors/d' "$config"
-      sed -i '/^#[[:print:]]*[c|C]olor/d' "$config"
-      sed -i '/# (http[s]*).$/d' "$config"
-      sed -i '/^# for transparency\.$/d' "$config"
-      sed -i '/^# Border used around UI elements in prompts\.$/,+2d'\
-        "$config"
-      sed -i '/^#[[:print:]]*scheme/d' "$config"
-      sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$config" #remove newlines
-      # append new line
-      printf "\\n" >> "$config"
-    fi
-    # append colorscheme
-    cat "${file}" >> "$config"
-  fi
-}
-
 set_rofi() {
   local package=$1
   local theme=$2
@@ -288,28 +336,6 @@ set_rofi() {
     cp "${file}" "${HOME}/.config/rofi/config"
   fi
 }
-set_termite() {
-  local package=$1
-  local theme=$2
-  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.config"
-  local termite_dir="${HOME}/.config/termite"
-  local config="${termite_dir}/config"
-
-  if ! file_exists ${file}; then
-    err "Termite theme not found."
-  else
-    check_dir $termite_dir
-    [[ -f "${config}.bac" ]] && rm "${config}.bac"
-    [[ -f "${config}" ]] && cp ${config} "${config}.bac" || touch ${config}
-    sed '/^\[colors\]$/,/^\[\w*\]$/{/^\[\w*\]$/!d}' ${config} | grep --invert-match '\[colors\]' > /tmp/termiterc
-    cp /tmp/termiterc ${config}
-    cat ${file} >> ${config}
-
-    # Reload termite configuration in-place.
-    killall -USR1 termite
-  fi
-}
-
 
 set_shell() {
   local package=$1
@@ -375,7 +401,7 @@ set_xresources() {
 
   if ! file_exists "${file}"; then
     err "Xresources theme not found."
-  else 
+  else
     cp "${file}" "${HOME}/${xres_color}"
 
     if file_exists "$xres"; then
