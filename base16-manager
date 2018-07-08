@@ -122,8 +122,8 @@ list_support() {
 
 list_installable() {
   local RESULT=""
-  for REPO in $(base16-manager list-support); do
-    if ! grep -q "$REPO" <<< "$(base16-manager list)"  ; then
+  for REPO in $(list_support); do
+    if ! grep -q "$REPO" <<< "$(list)"  ; then
       if [[ -z $RESULT ]]; then
         RESULT="$REPO"
       else
