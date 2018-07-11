@@ -2,10 +2,10 @@
 #
 # Install base16 templates and set themes globally.
 
-readonly CONFIG_PATH="${HOME}/.base16-manager"
+readonly CONFIG_PATH="$HOME/.base16-manager"
 
 err() {
-  echo "ERROR: $@" >&2
+  echo "ERROR: $*" >&2
 }
 
 usage() {
@@ -31,27 +31,35 @@ usage_short() {
 dir_exists() {
   local dir=$1
 
-  [[ -d "${dir}" ]] && true || false
+  if [[ -d "$dir" ]]; then
+    true
+  else
+    false
+  fi
 }
 
 file_exists() {
   local file=$1
 
-  [[ -f "${file}" ]] && true || false
+  if [[ -f "$file" ]]; then
+    true
+  else
+    false
+  fi
 }
 
 check_dir() {
   local dir=$1
 
-  if ! dir_exists "${dir}"; then
-    mkdir "${dir}"
+  if ! dir_exists "$dir"; then
+    mkdir "$dir"
   fi
 }
 
 check_arg() {
   local arg=$1
 
-  if [[ -z "${arg}" ]]; then
+  if [[ -z "$arg" ]]; then
     usage
     exit
   fi
@@ -59,42 +67,42 @@ check_arg() {
 
 install() {
   local template=$1
-  local repository="https://github.com/${template}"
+  local repository="https://github.com/$template"
 
-  check_dir ${CONFIG_PATH}
+  check_dir "$CONFIG_PATH"
 
-  if ! git ls-remote --exit-code -h "${repository}" > /dev/null; then
+  if ! git ls-remote --exit-code -h "$repository" > /dev/null; then
     err "Template repository not found."
     exit
   fi
 
-  git clone "${repository}" "$CONFIG_PATH/${template}"
+  git clone "$repository" "$CONFIG_PATH/$template"
 
-  echo "${template}" >> "$CONFIG_PATH"/installed
+  echo "$template" >> "$CONFIG_PATH"/installed
 }
 
 uninstall() {
   local template=$1
 
-  check_dir "${CONFIG_PATH}/${template}"
+  check_dir "$CONFIG_PATH/$template"
 
-  rm -rf "${CONFIG_PATH:?}/${template}"
+  rm -rf "$CONFIG_PATH:?/$template"
 
   tmp=$(mktemp)
 
   grep -v "$template" "$CONFIG_PATH"/installed > "$tmp"
   mv "$tmp" "$CONFIG_PATH"/installed
 
-  echo "Uninstalled ${template}."
+  echo "Uninstalled $template."
 }
 
 list() {
   # iterate over each MAINTAINER and REPOSITORY stored in $CONFIG_PATH
-  for MAINTAINER in "${CONFIG_PATH}"/*; do
-    for REPOSITORY in "${MAINTAINER}"/*; do
+  for MAINTAINER in "$CONFIG_PATH"/*; do
+    for REPOSITORY in "$MAINTAINER"/*; do
       [[ -e "$REPOSITORY" ]] || break # handle empty $CONFIG_PATH
       [[ -d "$REPOSITORY" ]] || break # handle files
-      echo "$(basename -- "${MAINTAINER}")/$(basename -- "${REPOSITORY}")"
+      echo "$(basename -- "$MAINTAINER")/$(basename -- "$REPOSITORY")"
     done 
   done 
 }
@@ -102,10 +110,10 @@ list() {
 list_themes() {
   local sort_option=$1
 
-  find ${CONFIG_PATH} -type f -name 'base16-*' | \
-    sed "s/.*\/base16-//" | \
-    sed "s/\..*//" | \
-    sort $sort_option | uniq
+  find "$CONFIG_PATH" -type f -name 'base16-*' | \
+    sed "s/.*\\/base16-//" | \
+    sed "s/\\..*//" | \
+    sort "$sort_option" | uniq
 }
 
 list_support() {
@@ -128,7 +136,7 @@ list_installable() {
         RESULT="$REPO"
       else
         local NEWLINE=$'\n'
-        RESULT="${RESULT}${NEWLINE}${REPO}"
+        RESULT="$RESULT$NEWLINE$REPO"
       fi
     fi
   done
@@ -136,15 +144,16 @@ list_installable() {
 }
 
 update() {
-  local packages=$(list)
+  local packages
+  packages=$(list)
 
-  if [[ -z "${packages}" ]]; then
+  if [[ -z "$packages" ]]; then
     err "No packages installed."
     exit
   fi
 
-  for package in ${packages}; do
-    cd "${CONFIG_PATH}/${package}"
+  for package in $packages; do
+    cd "$CONFIG_PATH"/"$package" || exit
     git pull -f origin master
   done
 
@@ -152,61 +161,62 @@ update() {
 }
 
 clean() {
-  find ${CONFIG_PATH} -maxdepth 1 -type d -empty -delete
+  find "$CONFIG_PATH" -maxdepth 1 -type d -empty -delete
 
-  check_dir ${CONFIG_PATH}
+  check_dir "$CONFIG_PATH"
 
-  echo "Cleaned up ${CONFIG_PATH}."
+  echo "Cleaned up $CONFIG_PATH."
 }
 
 set_theme() {
   local theme=$1
-  local packages=$(list)
+  local packages
+  packages=$(list)
 
-  if [[ -z "${packages}" ]]; then
+  if [[ -z "$packages" ]]; then
     err "No packages installed."
     exit
   fi
 
-  for package in ${packages}; do
-    case "${package}" in
+  for package in $packages; do
+    case "$package" in
       "0xdec/base16-rofi")
-        set_rofi "${package}" "${theme}"
+        set_rofi "$package" "$theme"
         ;;
       "chriskempson/base16-shell")
-        set_shell "${package}" "${theme}"
+        set_shell "$package" "$theme"
         ;;
       "chriskempson/base16-vim")
-        set_vim "${package}" "${theme}"
+        set_vim "$package" "$theme"
         ;;
       "chriskempson/base16-xresources")
-        set_xresources "${package}" "${theme}"
+        set_xresources "$package" "$theme"
         ;;
       "khamer/base16-dunst")
-        set_dunst "${package}" "${theme}"
+        set_dunst "$package" "$theme"
         ;;
       "nicodebo/base16-fzf")
-        set_fzf "${package}" "${theme}"
+        set_fzf "$package" "$theme"
         ;;
       "nicodebo/base16-zathura")
-        set_generic "${package}" "${theme}" "#" ' ' \
+        set_generic "$package" "$theme" "#" ' ' \
           "$HOME/.config/zathura/zathurarc"
         ;;
       "khamer/base16-termite")
-        set_generic "${package}" "${theme}" "#" "=" "$HOME/.config/termite/config"
+        set_generic "$package" "$theme" "#" "=" "$HOME/.config/termite/config"
         killall -USR1 termite  # Reload termite configuration in-place.
         ;;
       "theova/base16-qutebrowser")
-        set_generic "${package}" "${theme}" "#" "=" \
+        set_generic "$package" "$theme" "#" "=" \
           "$HOME/.config/qutebrowser/config.py"
         ;;
       *)
-        err "Package ${package} is not (yet) supported."
+        err "Package $package is not (yet) supported."
         ;;
     esac
   done
 
-  echo "Set theme to ${theme}. You may need to restart DE and terminals."
+  echo "Set theme to $theme. You may need to restart DE and terminals."
 }
 
 set_generic() {
@@ -288,16 +298,16 @@ set_generic() {
 set_dunst() {
   local package=$1
   local theme=$2
-  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.dunstrc"
-  local config="${HOME}/.config/dunst/dunstrc"
+  local file="$CONFIG_PATH/$package/themes/base16-$theme.dunstrc"
+  local config="$HOME/.config/dunst/dunstrc"
 
-  if ! file_exists "${file}"; then
+  if ! file_exists "$file"; then
     err "Dunst theme not found."
   else
-    sed '/^\[base16_low\]$/,/^\s+foreground(.*)$/d' "${config}" > /tmp/dunstrc
-    [[ -f "${config}.bac" ]] && rm "${config}.bac"
-    mv ${config} "${config}.bac"
-    cat /tmp/dunstrc "${file}" > "${config}"
+    sed '/^\[base16_low\]$/,/^\s+foreground(.*)$/d' "$config" > /tmp/dunstrc
+    [[ -f "$config.bac" ]] && rm "$config.bac"
+    mv "$config" "$config.bac"
+    cat /tmp/dunstrc "$file" > "$config"
 
     # Kill dunst to force reload new configuration.
     [[ ! -z "$(pidof dunst)" ]] && killall dunst
@@ -312,19 +322,19 @@ set_fzf() {
   local configs=".bashrc .zshrc .config/fish/config.fish"
 
   if command -v fish >/dev/null 2>&1; then
-    file="${CONFIG_PATH}/${package}/fish/base16-${theme}.fish"
+    file="$CONFIG_PATH/$package/fish/base16-$theme.fish"
   else
-    file="${CONFIG_PATH}/${package}/bash/base16-${theme}.config"
+    file="$CONFIG_PATH/$package/bash/base16-$theme.config"
   fi
 
-  if ! file_exists "${file}"; then
+  if ! file_exists "$file"; then
     err "FZF theme not found."
   else
-    cp "${file}" "${HOME}/.fzf.colors"
+    cp "$file" "$HOME/.fzf.colors"
 
-    for config in ${configs}; do
-      if file_exists "${HOME}/${config}" && ! grep -Fxq "${line}" "${HOME}/${config}"; then
-        echo "${line}" >> "${HOME}/${config}"
+    for config in $configs; do
+      if file_exists "$HOME/$config" && ! grep -Fxq "$line" "$HOME/$config"; then
+        echo "$line" >> "$HOME/$config"
       fi
     done
   fi
@@ -333,45 +343,45 @@ set_fzf() {
 set_rofi() {
   local package=$1
   local theme=$2
-  local file="${CONFIG_PATH}/${package}/themes/base16-${theme}.config"
+  local file="$CONFIG_PATH/$package/themes/base16-$theme.config"
 
-  if ! file_exists ${file}; then
+  if ! file_exists "$file"; then
     err "Rofi theme not found."
   else
-    cp "${file}" "${HOME}/.config/rofi/config"
+    cp "$file" "$HOME/.config/rofi/config"
   fi
 }
 
 set_shell() {
   local package=$1
   local theme=$2
-  local file="${CONFIG_PATH}/${package}/scripts/base16-${theme}.sh"
-  local helper="${CONFIG_PATH}/${package}/profile_helper.sh"
-  local fish_dir="${HOME}/.config/fish"
-  local fish_config="${fish_dir}/config.fish"
+  local file="$CONFIG_PATH/$package/scripts/base16-$theme.sh"
+  local helper="$CONFIG_PATH/$package/profile_helper.sh"
+  local fish_dir="$HOME/.config/fish"
+  local fish_config="$fish_dir/config.fish"
   local fish_string="# Base16 Shell
   if status --is-interactive
     eval sh $file
   end"
 
-  if ! file_exists ${helper}; then
+  if ! file_exists "$helper"; then
     err "Shell helper not found."
-  elif ! file_exists ${file}; then
+  elif ! file_exists "$file"; then
     err "Shell theme not found."
   else
-    eval "$(${helper})"
-    _base16 "${file}"
+    eval "$($helper)"
+    _base16 "$file"
 
     if command -v fish >/dev/null 2>&1; then
       # Make fish theme permanent
-      [[ ! -d ${fish_dir} ]] && mkdir ${fish_dir}
-      [[ ! -f ${fish_config} ]] && touch ${fish_config}
+      [[ ! -d "$fish_dir" ]] && mkdir "$fish_dir"
+      [[ ! -f "$fish_config" ]] && touch "$fish_config"
 
-      sed '/^# Base16 Shell$/,/^end$/d' ${fish_config} > /tmp/fish_config
-      [[ -f "${fish_config}.bac" ]] && rm "${fish_config}.bac"
-      mv ${fish_config} "${fish_config}.bac"
-      mv /tmp/fish_config "${fish_config}"
-      echo "${fish_string}" >> ${fish_config}
+      sed '/^# Base16 Shell$/,/^end$/d' "$fish_config" > /tmp/fish_config
+      [[ -f "$fish_config.bac" ]] && rm "$fish_config.bac"
+      mv "$fish_config" "$fish_config.bac"
+      mv /tmp/fish_config "$fish_config"
+      echo "$fish_string" >> "$fish_config"
     fi
   fi
 }
@@ -379,35 +389,36 @@ set_shell() {
 set_vim() {
   local package=$1
   local theme=$2
-  local file="${CONFIG_PATH}/${package}/colors/base16-${theme}.vim"
-  local vim_dirs="${HOME}/.vim ${HOME}/.config/nvim"
+  local file="$CONFIG_PATH/$package/colors/base16-$theme.vim"
+  local vim_dirs="$HOME/.vim $HOME/.config/nvim"
 
-  if ! file_exists ${file}; then
+  if ! file_exists "$file"; then
     err "Vim theme not found."
   else
-    for vim_dir in ${vim_dirs}; do
-      if dir_exists "${vim_dir}"; then
-        echo "colorscheme base16-${theme}" > "${vim_dir}/colorscheme.vim"
+    for vim_dir in $vim_dirs; do
+      if dir_exists "$vim_dir"; then
+        echo "colorscheme base16-$theme" > "$vim_dir/colorscheme.vim"
       fi
     done
   fi
 }
 
+# shellcheck disable=SC2120
 set_random() {
-  set_theme $(list_themes -R | head -n1 | awk "{print $1;}")
+  set_theme "$(list_themes -R | head -n1 | awk "{print $1;}")"
 }
 
 set_xresources() {
   local package=$1
   local theme=$2
-  local xres=${HOME}/.Xresources
-  local file="${CONFIG_PATH}/${package}/xresources/base16-${theme}.Xresources"
+  local xres=$HOME/.Xresources
+  local file="$CONFIG_PATH/$package/xresources/base16-$theme.Xresources"
   local xres_color=".Xresources.d/colors"
 
-  if ! file_exists "${file}"; then
+  if ! file_exists "$file"; then
     err "Xresources theme not found."
   else
-    cp "${file}" "${HOME}/${xres_color}"
+    cp "$file" "$HOME/$xres_color"
 
     if file_exists "$xres"; then
       # clean $xres and remove all lines containing color definitions
@@ -419,9 +430,9 @@ set_xresources() {
 
     # if $xres doesn't exist or doesn't include $xres_color, do it.
     if ! file_exists "$xres" || \
-      ! grep -iq "^\\#include\\s\"\(.*\)${xres_color}\"$" "${xres}"
+      ! grep -iq "^\\#include\\s\"\\(.*\\)$xres_color\"$" "$xres"
   then
-    echo "#include \"${xres_color}\"" >> "${xres}"
+    echo "#include \"$xres_color\"" >> "$xres"
   fi
 
   xrdb -load "$xres" # reload colors
@@ -429,24 +440,24 @@ fi
 }
 
 main() {
-  check_dir ${CONFIG_PATH}
+  check_dir "$CONFIG_PATH"
 
   local option=$1
   local arg=$2
 
-  if [[ -z "${option}" ]]; then
+  if [[ -z "$option" ]]; then
     usage
     exit
   fi
 
-  case ${option} in
+  case $option in
     "install")
-      check_arg "${arg}"
-      install "${arg}"
+      check_arg "$arg"
+      install "$arg"
       ;;
     "uninstall")
-      check_arg "${arg}"
-      uninstall "${arg}"
+      check_arg "$arg"
+      uninstall "$arg"
       ;;
     "list")
       list
@@ -464,13 +475,14 @@ main() {
       update
       ;;
     "set")
-      check_arg "${arg}"
-      set_theme "${arg}"
+      check_arg "$arg"
+      set_theme "$arg"
       ;;
     "clean")
       clean
       ;;
     "set-random")
+      # shellcheck disable=SC2119
       set_random
       ;;
     "usage-short")
