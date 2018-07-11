@@ -9,7 +9,7 @@ before_install:
   - docker pull koalaman/shellcheck
 
 script:
-  - docker run -v $(pwd):/scripts koalaman/shellcheck base16-manager
+  - docker run -v $(pwd):/scripts koalaman/shellcheck /scripts/base16-manager
 
 matrix:
   fast_finish: true
