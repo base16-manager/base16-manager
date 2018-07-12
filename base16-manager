@@ -77,8 +77,6 @@ install() {
   fi
 
   git clone "$repository" "$CONFIG_PATH/$template"
-
-  echo "$template" >> "$CONFIG_PATH"/installed
 }
 
 uninstall() {
@@ -87,11 +85,6 @@ uninstall() {
   check_dir "$CONFIG_PATH/$template"
 
   rm -rf "$CONFIG_PATH:?/$template"
-
-  tmp=$(mktemp)
-
-  grep -v "$template" "$CONFIG_PATH"/installed > "$tmp"
-  mv "$tmp" "$CONFIG_PATH"/installed
 
   echo "Uninstalled $template."
 }
