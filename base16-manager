@@ -101,12 +101,12 @@ list() {
 }
 
 list_themes() {
-  local sort_option=$1
+  local sort_option=( "$@" )
 
   find "$CONFIG_PATH" -type f -name 'base16-*' | \
     sed "s/.*\\/base16-//" | \
     sed "s/\\..*//" | \
-    sort "$sort_option" | uniq
+    sort "${sort_option[@]}" | uniq
 }
 
 list_support() {
