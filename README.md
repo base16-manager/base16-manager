@@ -1,78 +1,83 @@
-# Base16 Manager
-`base16-manager` is a command line tool to install base16 templates and set themes globally. This helps a lot if you have multiple base16 templates installed and you like to shift themes every now and then.
+# base16-manager
 
-All PRs welcome!
+`base16-manager` is a command line tool to install base16 templates and set
+themes globally. This helps a lot if you have multiple base16 templates
+installed and you like to shift themes every now and then.
 
-## Dependencies
-* bash
-* git
 
 ## Installation
-### Arch Linux
-Install from the [AUR](https://aur.archlinux.org/packages/base16-manager-git).
+
+### Linux
+Clone this repository and run:
 ```sh
-$ yaourt -S base16-manager-git
+$ sudo make install
 ```
 
-### Other Linux distros
-Download the Git repo and run:
+#### Arch Linux
+If you are using Arch Linux, you can install `base16-manager` from the
+[AUR](https://aur.archlinux.org/packages/base16-manager).
 ```sh
-# make install
+$ aurman -S base16-manager
 ```
 
-To remove, simply run:
-```sh
-# make clean
-```
-
-### macOS
+### MacOS
 Install using [Homebrew](https://brew.sh/).
 ```sh
 $ brew tap chrokh/tap
 $ brew install base16-manager
 ```
 
+### Windows
+No Windows support at this time.
 
-## Setup
-### Installing templates
-Before you can set a new theme, you have to install at least 1 template ([found here](https://github.com/chriskempson/base16)).
-```sh
-$ base16-manager install chriskempson/base16-shell
+
+## Usage
+
+```
+Usage: base16-manager [option]
+Options:
+ set              'base16-theme'         Sets the theme
+ set-random                              Sets to a random installed theme
+ install          'username/repository'  Installs a new template
+ uninstall        'username/repository'  Uninstalls a template
+ list                                    Lists installed templates
+ list-support                            Lists supported templates
+ list-installable                        Lists installable templates
+ list-themes                             Lists installed themes
+ update                                  Updates installed templates
+ clean                                   Cleans up leftovers
 ```
 
-### Note
-If you are using `chriskempson/base16-vim` with Vim, you should add
-`source ~/.vim/colorscheme.vim` to your `.vimrc`. If you are using NeoVim
-instead, you should add `source ~/.config/nvim/colorscheme.vim` instead.
 
-### Setting a theme
-Once you've setup the templates you'd like to use, you're ready to set a theme.
-```sh
+## Examples
+```
+// What templates are supported?
+$ base16-manager list-support
+
+// Install a bunch of templates.
+$ base16-manager install chriskempson/base16-shell
+$ base16-manager install chriskempson/base16-vim
+$ base16-manager install 0xdec/base16-rofi
+
+// What themes are installed now I have templates?
+$ base16-manager list-themes
+
+// Set a theme for all installed templates.
 $ base16-manager set materia
 ```
 
-## Usage
-```sh
-Usage: base16-manager [option]
-Options:
-    set          'base16-theme'         Sets the theme
-    set-random                          Sets to a random installed theme
-    install      'username/repository'  Installs a new template
-    uninstall    'username/repository'  Uninstalls a template
-    list                                Lists installed templates
-    list-themes                         Lists installed themes
-    update                              Updates installed templates
-    clean                               Cleans up leftovers
-    self-update                         Updates this script
-```
+## Notes
+* If you want to use themes with `i3wm` you should
+  [read this](https://www.reddit.com/r/unixporn/comments/4if9xc/i3_you_can_now_use_x_resources_in_i3/)
+  and familiarize yourself with Xresources a tad.
+* If you are using
+  [`chriskempson/base16-shell`](https://github.com/chriskempson/base16-shell),
+  you'll want to go through the configuration described there, and replace
+  `$HOME/.config/base16-shell/` with
+  `$HOME/.base16-manager/chriskempson/base16-shell/`.
+* If you are using `chriskempson/base16-vim` with Vim, you should add
+  `source ~/.vim/colorscheme.vim` to your `.vimrc`. If you are using NeoVim
+  instead, you should add `source ~/.config/nvim/colorscheme.vim` instead.
 
-## Currently supported templates
-* [0xdec/base16-rofi](https://github.com/0xdec/base16-rofi)
-* [chriskempson/base16-shell](https://github.com/chriskempson/base16-shell)
-* [chriskempson/base16-vim](https://github.com/chriskempson/base16-vim)
-* [chriskempson/base16-xresources](https://github.com/chriskempson/base16-xresources)
-* [khamer/base16-dunst](https://github.com/khamer/base16-dunst)
-* [khamer/base16-termite](https://github.com/khamer/base16-termite)
-* [nicodebo/base16-fzf](https://github.com/nicodebo/base16-fzf)
-* [nicodebo/base16-zathura](https://github.com/nicodebo/base16-zathura)
-* [theova/base16-qutebrowser](https://github.com/theova/base16-qutebrowser)
+## Contributing
+See `CONTRIBUTING.md` for more information.
