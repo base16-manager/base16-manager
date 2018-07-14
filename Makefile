@@ -1,12 +1,12 @@
 TARGET=base16-manager
-PREFIX=/usr/local
+PREFIX=/usr
 DESTDIR=
-BINDIR=${PREFIX}/bin
-LICENSEDIR=/usr/share/licenses
+BINDIR=${PREFIX}/local/bin
+LICENSEDIR=${PREFIX}/share/licenses
 BASHCOMP=completion/completion.bash
-BASHCOMPDIR=/usr/share/bash-completion/completions
+BASHCOMPDIR=${PREFIX}/share/bash-completion/completions
 ZSHCOMP=completion/completion.zsh
-ZSHCOMPDIR=/usr/share/zsh/site-functions/
+ZSHCOMPDIR=${PREFIX}/share/zsh/site-functions/
 
 install:
 	install -D -m755 ${TARGET} ${DESTDIR}${BINDIR}/${TARGET}
@@ -15,13 +15,13 @@ install:
 	@if [[ -d ${BASHCOMPDIR} ]] ; \
 	then \
 	echo "install completion for bash"; \
-	install -D -m644 ${BASHCOMP} ${BASHCOMPDIR}/base16-manager; \
+	install -D -m644 ${BASHCOMP} ${DESTDIR}${BASHCOMPDIR}/base16-manager; \
 	fi;
 
 	@if [[ -d ${ZSHCOMPDIR} ]] ; \
 	then \
 	echo "install completion for zsh"; \
-	install -D -m644 ${ZSHCOMP} ${ZSHCOMPDIR}/_base16-manager; \
+	install -D -m644 ${ZSHCOMP} ${DESTDIR}${ZSHCOMPDIR}/_base16-manager; \
 	fi;
 
 clean:
