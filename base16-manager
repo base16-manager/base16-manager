@@ -104,8 +104,8 @@ list() {
       [[ -e "$REPOSITORY" ]] || break # handle empty $CONFIG_PATH
       [[ -d "$REPOSITORY" ]] || break # handle files
       echo "$(basename -- "$MAINTAINER")/$(basename -- "$REPOSITORY")"
-    done 
-  done 
+    done
+  done
 }
 
 # print all installed themes
@@ -227,7 +227,7 @@ set_theme() {
 }
 
 # Use template ($1) to set theme ($2).
-# This is done by deleting all lines in user's config ($5) containing the 
+# This is done by deleting all lines in user's config ($5) containing the
 # left-hand side of any assignement (marked by the assignement string $4) in the
 # theme file. All comments directly above the deleted line are also deleted.
 set_generic() {
@@ -244,7 +244,7 @@ set_generic() {
 
   # get template and handling for inexisting templates
   if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."* ) 
+    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."* )
   else
     err "$package: theme $theme not found."
     return 1
@@ -265,7 +265,7 @@ set_generic() {
     # if $left found, then
     # delete all lines ($line) containing $left
     # delte all comments above $line
-    if ! [[ -z $left ]]; then
+    if [[ -n $left ]]; then
       lines=$(grep -Fohn "$left" "$config_tmp"  | cut -d : -f 1)
 
       for number in $lines; do
@@ -294,7 +294,7 @@ set_generic() {
   cp "$config" "$config.bac"
 
   # append a line break, if last line is not empty.
-  if ! [[ -z $(tail -1 "$config_tmp") ]]; then
+  if [[ -n $(tail -1 "$config_tmp") ]]; then
     printf "\\n" >> "$config_tmp"
   fi
 
@@ -317,7 +317,7 @@ set_by_copy() {
 
   # get template and handling for inexisting templates
   if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."*"$ending" ) 
+    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."*"$ending" )
   else
     err "$package: theme $theme not found."
     return 1
@@ -345,7 +345,7 @@ set_dunst() {
     cat /tmp/dunstrc "$file" > "$config"
 
     # Kill dunst to force reload new configuration.
-    [[ ! -z "$(pidof dunst)" ]] && killall dunst
+    [[ -n "$(pidof dunst)" ]] && killall dunst
   fi
 }
 
