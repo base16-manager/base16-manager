@@ -104,8 +104,8 @@ list() {
       [[ -e "$REPOSITORY" ]] || break # handle empty $CONFIG_PATH
       [[ -d "$REPOSITORY" ]] || break # handle files
       echo "$(basename -- "$MAINTAINER")/$(basename -- "$REPOSITORY")"
-    done 
-  done 
+    done
+  done
 }
 
 # print all installed themes
@@ -227,7 +227,7 @@ set_theme() {
 }
 
 # Use template ($1) to set theme ($2).
-# This is done by deleting all lines in user's config ($5) containing the 
+# This is done by deleting all lines in user's config ($5) containing the
 # left-hand side of any assignement (marked by the assignement string $4) in the
 # theme file. All comments directly above the deleted line are also deleted.
 set_generic() {
@@ -244,7 +244,7 @@ set_generic() {
 
   # get template and handling for inexisting templates
   if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."* ) 
+    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."* )
   else
     err "$package: theme $theme not found."
     return 1
@@ -317,7 +317,7 @@ set_by_copy() {
 
   # get template and handling for inexisting templates
   if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."*"$ending" ) 
+    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."*"$ending" )
   else
     err "$package: theme $theme not found."
     return 1
