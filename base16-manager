@@ -9,6 +9,10 @@ err() {
   echo "ERROR: $*" >&2
 }
 
+bug() {
+  echo "A bug occured. Please copy the following message and report the bug here: https://github.com/AuditeMarlow/base16-manager."
+  echo "$*"
+}
 usage() {
   echo "Usage: base16-manager [option]"
   echo "Options:"
@@ -68,6 +72,15 @@ check_arg() {
     usage
     exit
   fi
+}
+# return true, if OS is mac
+is_mac() {
+  [[ "$(uname)" == "Darwin" ]]
+}
+
+# return true, if OS is linux
+is_linux() {
+  [[ "$(uname)" == "Linux" ]]
 }
 
 # install the repo $1, e.g. $1="USER/NAME"
@@ -214,8 +227,18 @@ set_theme() {
         killall -USR1 termite  # Reload termite configuration in-place.
         ;;
       "theova/base16-qutebrowser")
-        set_generic "$package" "$theme" "#" "=" \
-          "$HOME/.config/qutebrowser/config.py"
+        # handle different locations of config
+        if is_mac; then
+          QUTEBROWSERCONF="$HOME/.qutebrowser/config.py"
+        elif is_linux; then
+          QUTEBROWSERCONF="$HOME/.config/qutebrowser/config.py"
+        else
+          bug "Unkown OS: $(uname)"
+          return
+        fi
+
+        # set theme
+        set_generic "$package" "$theme" "#" "=" "$QUTEBROWSERCONF"
         ;;
       *)
         err "Package $package is not (yet) supported."
