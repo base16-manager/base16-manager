@@ -273,6 +273,12 @@ set_generic() {
     return 1
   fi
 
+  if [[ ! -f "$config" ]]; then
+    mkdir -p "$(dirname "$config")"
+    cp "$file" "$config"
+    return
+  fi
+
   # work with a temporary config copy
   config_tmp=/tmp/base16_manager_$(basename "$config")
   cp "$config" "$config_tmp"
