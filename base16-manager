@@ -9,6 +9,10 @@ err() {
   echo "ERROR: $*" >&2
 }
 
+bug() {
+  echo "A bug occured. Please copy the following message and report the bug here: https://github.com/AuditeMarlow/base16-manager."
+  echo "$*"
+}
 usage() {
   echo "Usage: base16-manager [option]"
   echo "Options:"
@@ -68,6 +72,15 @@ check_arg() {
     usage
     exit
   fi
+}
+# return true, if OS is mac
+is_mac() {
+  [[ "$(uname)" == "Darwin" ]]
+}
+
+# return true, if OS is linux
+is_linux() {
+  [[ "$(uname)" == "Linux" ]]
 }
 
 # install the repo $1, e.g. $1="USER/NAME"
@@ -214,8 +227,18 @@ set_theme() {
         killall -USR1 termite  # Reload termite configuration in-place.
         ;;
       "theova/base16-qutebrowser")
-        set_generic "$package" "$theme" "#" "=" \
-          "$HOME/.config/qutebrowser/config.py"
+        # handle different locations of config
+        if is_mac; then
+          QUTEBROWSERCONF="$HOME/.qutebrowser/config.py"
+        elif is_linux; then
+          QUTEBROWSERCONF="$HOME/.config/qutebrowser/config.py"
+        else
+          bug "Unkown OS: $(uname)"
+          return
+        fi
+
+        # set theme
+        set_generic "$package" "$theme" "#" "=" "$QUTEBROWSERCONF"
         ;;
       *)
         err "Package $package is not (yet) supported."
@@ -250,10 +273,15 @@ set_generic() {
     return 1
   fi
 
+  if [[ ! -f "$config" ]]; then
+    mkdir -p "$(dirname "$config")"
+    cp "$file" "$config"
+    return
+  fi
+
   # work with a temporary config copy
   config_tmp=/tmp/base16_manager_$(basename "$config")
   cp "$config" "$config_tmp"
-
 
   while read -r line; do
     # get left side of each assignement
@@ -269,10 +297,9 @@ set_generic() {
       lines=$(grep -Fohn "$left" "$config_tmp"  | cut -d : -f 1)
 
       for number in $lines; do
-        sed -i "$number"'s/.*//' "$config_tmp"
-
+        sed -i.bak "$number"'d' "$config_tmp"
         while  (( number > 1 )) && sed "$(( number - 1 ))"'!d' "$config_tmp" | grep -q "^$cmnt_string"; do
-          sed -i "$(( number - 1 ))"'s/.*//' "$config_tmp"
+          sed -i.bak "$(( number - 1 ))"'s/.*//' "$config_tmp"
           number=$((number - 1))
         done
       done
@@ -281,14 +308,14 @@ set_generic() {
   done <"$file"
 
   #remove special strings (e.g. in template headers)
-  sed -i '/'"^$cmnt_string"'.*[b,B]ase16/d' "$config_tmp"
-  sed -i '/'"^$cmnt_string"'.*scheme by/d' "$config_tmp"
-  sed -i '/'"^$cmnt_string"'.*Author:/d' "$config_tmp"
+  sed -i.bak '/'"^$cmnt_string"'.*[b,B]ase16/d' "$config_tmp"
+  sed -i.bak '/'"^$cmnt_string"'.*scheme by/d' "$config_tmp"
+  sed -i.bak '/'"^$cmnt_string"'.*Author:/d' "$config_tmp"
 
   # remove parts with more than one empty line
-  sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$config_tmp"
+  sed -i.bak '$!N; /^\(.*\)\n\1$/!P; D' "$config_tmp"
   # remove first line, if it's empty
-  sed -i '1{/^[[:space:]]*$/d}' "$config_tmp"
+  sed -i.bak '1{/^[[:space:]]*$/d;}' "$config_tmp"
 
   # create a backup
   cp "$config" "$config.bac"
@@ -303,6 +330,9 @@ set_generic() {
 
   # copy temporary file to the right place
   cp "$config_tmp" "$config"
+
+  # remove temporay files
+  rm "$config_tmp".bak "$config_tmp"
 }
 
 # Use template ($1) to set theme ($2).
