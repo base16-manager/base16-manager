@@ -530,30 +530,30 @@ set_xresources() {
   local theme=$2
   local xres=$HOME/.Xresources
   local file="$DATA_PATH/$package/xresources/base16-$theme.Xresources"
+  local xres_d="$HOME/.Xresources.d"
   local xres_color=".Xresources.d/colors"
 
   if ! file_exists "$file"; then
     err "Xresources theme not found."
   else
+    check_dir "$xres_d"
     cp "$file" "$HOME/$xres_color"
 
     if file_exists "$xres"; then
       # clean $xres and remove all lines containing color definitions
       sed -i '/^\#ifdef background_opacity/,+4d' "$xres" #ifdef till #endif
-        sed -i '/[B|b]ase[[:xdigit:]]/d' "$xres" # base16
+      sed -i '/[B|b]ase[[:xdigit:]]/d' "$xres" # base16
       sed -i '/^\! Scheme/d' "$xres" # comments
       sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$xres" #remove newlines
     fi
 
-    # if $xres doesn't exist or doesn't include $xres_color, do it.
-    if ! file_exists "$xres" || \
-      ! grep -iq "^\\#include\\s\"\\(.*\\)$xres_color\"$" "$xres"
-  then
-    echo "#include \"$xres_color\"" >> "$xres"
-  fi
+    # add new line to include colors to Xresources
+    line_in_file "$xres" \
+                 "^#include\\s+\".*$xres_color\"$" \
+                 "#include \"$xres_color\""
 
-  xrdb -load "$xres" # reload colors
-fi
+    xrdb -load "$xres" # reload colors
+  fi
 }
 
 main() {
