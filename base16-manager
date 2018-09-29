@@ -508,6 +508,23 @@ check_eof_nl() {
   fi
 }
 
+# check if there is line in file($1) corresponding to pattern($2)
+# if not, add line($3) to the end of file
+#
+# pattern is matched using extended-regexp
+line_in_file() {
+  local file=$1
+  local pattern=$2
+  local line=$3
+
+  if ! file_exists "$file" || \
+      ! grep -iqE "$pattern" "$file"
+  then
+    check_eof_nl "$file"
+    echo "$line" >> "$file"
+  fi
+}
+
 set_xresources() {
   local package=$1
   local theme=$2
