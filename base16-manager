@@ -228,7 +228,7 @@ set_theme() {
   for package in $packages; do
     case "$package" in
       "0xdec/base16-rofi")
-        set_by_copy "$package" "$theme" "$HOME/.config/rofi/config" "config"
+        set_rofi "$package" "$theme"
         ;;
       "chriskempson/base16-shell")
         set_shell "$package" "$theme"
@@ -523,6 +523,39 @@ line_in_file() {
     check_eof_nl "$file"
     echo "$line" >> "$file"
   fi
+}
+
+set_rofi() {
+  local package=$1
+  local theme=$2
+
+  # get template and handling for inexisting templates
+  if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."*"rasi" )
+  else
+    err "$package: theme $theme not found."
+    return 1
+  fi
+
+  # path to rofi config
+  local ROFI_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/rofi/config"
+
+  # remove old theme or new rasi style theme from config
+  sed -i -e '/^\! Base16 /d' \
+    -e '/^\! Author:/d' \
+    -e '/^\! base[[:xdigit:]]\{2\}/d' \
+    -e '/^\! Enable the extended coloring options/d' \
+    -e '/^rofi\.color-enabled: true/d' \
+    -e '/^\! Property Name/d' \
+    -e '/^rofi\.color-/d' \
+    -e '/^rofi\.theme/d' \
+    -e '/^! Set the desired separator style/d' \
+    -e '/^rofi.separator-style: solid/d' \
+    -e '/^# Theme set by base16-manager/d' \
+    -e '/^\s*theme:/d' "$ROFI_CONFIG"
+
+  check_eof_nl "$ROFI_CONFIG"
+  printf "# Theme set by base16-manager\\nrofi.theme: %s\\n" "$file" >> "$ROFI_CONFIG"
 }
 
 set_xresources() {
