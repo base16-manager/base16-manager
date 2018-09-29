@@ -491,6 +491,23 @@ set_random() {
   set_theme "$(list_themes -R | head -n1 | awk "{print $1;}")"
 }
 
+# check if there is new line at the end of file
+# add it if not
+#
+# Rationale: We often need to append something to config file, but if newline
+# is missing at end of file, our string will be appended to same line as
+# last line in config file causing failure
+check_eof_nl() {
+  local file=$1
+
+  # add newline to eof if it is missing
+  local eof
+  eof=$(tail -c 1 "$file")
+  if ! [ -z "$eof" ]; then
+    printf "\\n" >> "$file"
+  fi
+}
+
 set_xresources() {
   local package=$1
   local theme=$2
