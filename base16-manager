@@ -130,7 +130,7 @@ uninstall() {
 
   check_dir "$DATA_PATH/$template"
 
-  rm -rf "$DATA_PATH:?/$template"
+  rm -rf "${DATA_PATH:?}/${template:?}"
 
   echo "Uninstalled $template."
 }
