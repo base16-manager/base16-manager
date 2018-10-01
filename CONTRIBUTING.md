@@ -15,6 +15,7 @@ Coding guidelines
 -----------------
 
 * Please write clean, organized and well documented code.
+* To set your editor to `base16-manager`'s coding style, please use [EditorConfig](https://editorconfig.org/).
 * Please make your code [ShellCheck](https://www.shellcheck.net/) compatible.
 * If you're adding new templates, please try to use the existing functions
   wherever possible. Try to write new functions as generically as possible, so
