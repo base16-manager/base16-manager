@@ -471,7 +471,7 @@ set_sway() {
   else
     for sway_dir in $sway_dirs; do
       if dir_exists "$sway_dir"; then
-        ln -s $file "$sway_dir/colorscheme"
+        ln -s "$file" "$sway_dir/colorscheme"
       fi
     done
   fi
