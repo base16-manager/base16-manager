@@ -242,7 +242,7 @@ set_theme() {
         set_generic "$package" "$theme" "#" "=" "$QUTEBROWSERCONF"
         ;;
       "rkubosz/base16-sway")
-        set_sway "$package" "$theme"
+        set_by_copy "$package" "$theme" "$HOME/.config/sway/colorscheme" "config"
         ;;
       *)
         err "Package $package is not (yet) supported."
@@ -455,23 +455,6 @@ set_vim() {
     for vim_dir in $vim_dirs; do
       if dir_exists "$vim_dir"; then
         echo "colorscheme base16-$theme" > "$vim_dir/colorscheme.vim"
-      fi
-    done
-  fi
-}
-
-set_sway() {
-  local package=$1
-  local theme=$2
-  local file="$CONFIG_PATH/$package/themes/base16-$theme.config"
-  local sway_dirs="$HOME/.sway $XDG_CONFIG_HOME/sway"
-
-  if ! file_exists "$file"; then
-    err "Sway theme not found."
-  else
-    for sway_dir in $sway_dirs; do
-      if dir_exists "$sway_dir"; then
-        ln -s "$file" "$sway_dir/colorscheme"
       fi
     done
   fi
