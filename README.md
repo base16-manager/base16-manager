@@ -72,6 +72,11 @@ $ base16-manager set materia
 * If you want to use themes with `i3wm` you should
   [read this](https://www.reddit.com/r/unixporn/comments/4if9xc/i3_you_can_now_use_x_resources_in_i3/)
   and familiarize yourself with Xresources a tad.
+* If you use `sway` and want to integrate it with `base16`, please follow
+	[installation procedure described in
+	readme](https://github.com/rkubosz/base16-sway). If you have already working
+	setup of `base16-sway` just make sure to have a `include colorscheme` command
+	in your config.
 * If you are using
   [`chriskempson/base16-shell`](https://github.com/chriskempson/base16-shell),
   you'll want to go through the configuration described there, and replace
