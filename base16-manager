@@ -280,7 +280,7 @@ set_theme() {
         set_fzf "$package" "$theme"
         ;;
       "nicodebo/base16-zathura")
-        set_generic "$package" "$theme" "#" ' ' \
+        set_generic "$package" "$theme" "#" '"(#|[a-z]*)' \
           "$HOME/.config/zathura/zathurarc"
         ;;
       "khamer/base16-termite")
@@ -329,6 +329,7 @@ set_generic() {
   local line
   local number
 
+
   # get template and handling for inexisting templates
   if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
     file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."* )
@@ -349,16 +350,23 @@ set_generic() {
 
   while read -r line; do
     # get left side of each assignement
-    left=$(echo "$line" | cut -d "$assign_string" -f 1)
-    left=$(echo "$left" | xargs) # remove trailing whitespaces
+    left=$(echo "$line" |  awk -F"$assign_string" '{$0=$1}1')
+    left=$(echo "$left" | xargs 2>/dev/null) # remove trailing whitespaces
     left=$(echo "$left" | sed 's/\//\\\//g') # escape slashes
-
+    # shellcheck disable=SC2001
+    left=$(echo "$left" | sed -e 's|(|\\(|g') # escape paranthesis
+    # shellcheck disable=SC2001
+    left=$(echo "$left" | sed -e 's|)|\\)|g') # escape paranthesis
+    # shellcheck disable=SC2001
+    left=$(echo "$left" | sed  's|\[|\\[|g') # escape paranthesis
+    # shellcheck disable=SC2001
+    left=$(echo "$left" | sed  's|\]|\\]|g') # escape paranthesis
 
     # if $left found, then
     # delete all lines ($line) containing $left
     # delte all comments above $line
     if [[ -n $left ]]; then
-      lines=$(grep -Fohn "$left" "$config_tmp"  | cut -d : -f 1)
+      lines=$(grep -ohnE "$left( |$assign_string|$)+" "$config_tmp"  | cut -d : -f 1)
 
       for number in $lines; do
         sed -i.bak "$number"'d' "$config_tmp"
