@@ -3,7 +3,7 @@
 # Install base16 templates and set themes globally.
 # Source https://github.com/AuditeMarlow/base16-manager
 
-readonly CONFIG_PATH="$HOME/.base16-manager"
+readonly DATA_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/base16-manager"
 
 err() {
   echo "ERROR: $*" >&2
@@ -64,6 +64,32 @@ check_dir() {
   fi
 }
 
+# move old config to new data directory or create new one
+# if it doesn't already exists
+check_data_dir() {
+  local OLD_CONFIG_PATH="$HOME/.base16-manager"
+
+  if dir_exists "$OLD_CONFIG_PATH"; then
+    cat <<EOT
+
+Old config data detected!
+-------------------------
+
+1. Move your base16-manager data to new location
+
+  mv "${OLD_CONFIG_PATH}" "${DATA_PATH}"
+
+2. Set your favorite theme again, something like:
+
+  base16-manager set solarized-dark
+
+EOT
+    exit 1
+  fi
+
+  dir_exists "$DATA_PATH" || mkdir "$DATA_PATH"
+}
+
 # if the length of $1 is zero, print base16-manager's help text.
 check_arg() {
   local arg=$1
@@ -88,33 +114,33 @@ install() {
   local template=$1
   local repository="https://github.com/$template"
 
-  check_dir "$CONFIG_PATH"
+  check_data_dir
 
   if ! git ls-remote --exit-code -h "$repository" > /dev/null; then
     err "Template repository not found."
     exit
   fi
 
-  git clone "$repository" "$CONFIG_PATH/$template"
+  git clone "$repository" "$DATA_PATH/$template"
 }
 
 # uninstall the repo $1, e.g. $1="USER/NAME"
 uninstall() {
   local template=$1
 
-  check_dir "$CONFIG_PATH/$template"
+  check_dir "$DATA_PATH/$template"
 
-  rm -rf "$CONFIG_PATH:?/$template"
+  rm -rf "$DATA_PATH:?/$template"
 
   echo "Uninstalled $template."
 }
 
 # print all installed templates
 list() {
-  # iterate over each MAINTAINER and REPOSITORY stored in $CONFIG_PATH
-  for MAINTAINER in "$CONFIG_PATH"/*; do
+  # iterate over each MAINTAINER and REPOSITORY stored in $DATA_PATH
+  for MAINTAINER in "$DATA_PATH"/*; do
     for REPOSITORY in "$MAINTAINER"/*; do
-      [[ -e "$REPOSITORY" ]] || break # handle empty $CONFIG_PATH
+      [[ -e "$REPOSITORY" ]] || break # handle empty $DATA_PATH
       [[ -d "$REPOSITORY" ]] || break # handle files
       echo "$(basename -- "$MAINTAINER")/$(basename -- "$REPOSITORY")"
     done
@@ -125,7 +151,7 @@ list() {
 list_themes() {
   local sort_option=( "$@" )
 
-  find "$CONFIG_PATH" -type f -name 'base16-*' | \
+  find "$DATA_PATH" -type f -name 'base16-*' | \
     sed "s/.*\\/base16-//" | \
     sed "s/\\..*//" | \
     sort "${sort_option[@]}" | uniq
@@ -172,20 +198,20 @@ update() {
   fi
 
   for package in $packages; do
-    cd "$CONFIG_PATH"/"$package" || exit
+    cd "$DATA_PATH"/"$package" || exit
     git pull -f origin master
   done
 
   echo "All packages updated."
 }
 
-# remove all empty directories in $CONFIG_PATH
+# remove all empty directories in $DATA_PATH
 clean() {
-  find "$CONFIG_PATH" -maxdepth 1 -type d -empty -delete
+  find "$DATA_PATH" -maxdepth 1 -type d -empty -delete
 
-  check_dir "$CONFIG_PATH"
+  check_data_dir
 
-  echo "Cleaned up $CONFIG_PATH."
+  echo "Cleaned up $DATA_PATH."
 }
 
 # set themes for all installed templates
@@ -270,8 +296,8 @@ set_generic() {
   local number
 
   # get template and handling for inexisting templates
-  if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."* )
+  if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."* )
   else
     err "$package: theme $theme not found."
     return 1
@@ -350,8 +376,8 @@ set_by_copy() {
   local file
 
   # get template and handling for inexisting templates
-  if ls "$CONFIG_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$CONFIG_PATH/$package"/*/"base16-$theme."*"$ending" )
+  if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."*"$ending" )
   else
     err "$package: theme $theme not found."
     return 1
@@ -367,7 +393,7 @@ set_by_copy() {
 set_dunst() {
   local package=$1
   local theme=$2
-  local file="$CONFIG_PATH/$package/themes/base16-$theme.dunstrc"
+  local file="$DATA_PATH/$package/themes/base16-$theme.dunstrc"
   local config="$HOME/.config/dunst/dunstrc"
 
   if ! file_exists "$file"; then
@@ -391,9 +417,9 @@ set_fzf() {
   local configs=".bashrc .zshrc .config/fish/config.fish"
 
   if command -v fish >/dev/null 2>&1; then
-    file="$CONFIG_PATH/$package/fish/base16-$theme.fish"
+    file="$DATA_PATH/$package/fish/base16-$theme.fish"
   else
-    file="$CONFIG_PATH/$package/bash/base16-$theme.config"
+    file="$DATA_PATH/$package/bash/base16-$theme.config"
   fi
 
   if ! file_exists "$file"; then
@@ -412,8 +438,8 @@ set_fzf() {
 set_shell() {
   local package=$1
   local theme=$2
-  local file="$CONFIG_PATH/$package/scripts/base16-$theme.sh"
-  local helper="$CONFIG_PATH/$package/profile_helper.sh"
+  local file="$DATA_PATH/$package/scripts/base16-$theme.sh"
+  local helper="$DATA_PATH/$package/profile_helper.sh"
   local fish_dir="$HOME/.config/fish"
   local fish_config="$fish_dir/config.fish"
   local fish_string="# Base16 Shell
@@ -446,7 +472,7 @@ set_shell() {
 set_vim() {
   local package=$1
   local theme=$2
-  local file="$CONFIG_PATH/$package/colors/base16-$theme.vim"
+  local file="$DATA_PATH/$package/colors/base16-$theme.vim"
   local vim_dirs="$HOME/.vim $HOME/.config/nvim"
 
   if ! file_exists "$file"; then
@@ -469,7 +495,7 @@ set_xresources() {
   local package=$1
   local theme=$2
   local xres=$HOME/.Xresources
-  local file="$CONFIG_PATH/$package/xresources/base16-$theme.Xresources"
+  local file="$DATA_PATH/$package/xresources/base16-$theme.Xresources"
   local xres_color=".Xresources.d/colors"
 
   if ! file_exists "$file"; then
@@ -497,10 +523,10 @@ fi
 }
 
 main() {
-  check_dir "$CONFIG_PATH"
-
   local option=$1
   local arg=$2
+
+  check_data_dir
 
   if [[ -z "$option" ]]; then
     usage
