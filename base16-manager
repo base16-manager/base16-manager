@@ -99,6 +99,23 @@ check_arg() {
     exit
   fi
 }
+
+# check if there is new line at the end of file
+# add it if not
+#
+# Rationale: We often need to append something to config file, but if newline
+# is missing at end of file, our string will be appended to same line as
+# last line in config file causing failure
+check_eof_nl() {
+  local file=$1
+
+  # add newline to eof if it is missing
+  local eof
+  eof=$(tail -c 1 "$file")
+  if  [ -n "$eof" ]; then
+    printf "\\n" >> "$file"
+  fi
+}
 # return true, if OS is mac
 is_mac() {
   [[ "$(uname)" == "Darwin" ]]
@@ -107,6 +124,23 @@ is_mac() {
 # return true, if OS is linux
 is_linux() {
   [[ "$(uname)" == "Linux" ]]
+}
+
+# check if there is line in file($1) corresponding to pattern($2)
+# if not, add line($3) to the end of file
+#
+# pattern is matched using extended-regexp
+line_in_file() {
+  local file=$1
+  local pattern=$2
+  local line=$3
+
+  if ! file_exists "$file" || \
+      ! grep -iqE "$pattern" "$file"
+  then
+    check_eof_nl "$file"
+    echo "$line" >> "$file"
+  fi
 }
 
 # install the repo $1, e.g. $1="USER/NAME"
@@ -130,7 +164,7 @@ uninstall() {
 
   check_dir "$DATA_PATH/$template"
 
-  rm -rf "$DATA_PATH:?/$template"
+  rm -rf "${DATA_PATH:?}/${template:?}"
 
   echo "Uninstalled $template."
 }
@@ -228,7 +262,7 @@ set_theme() {
   for package in $packages; do
     case "$package" in
       "0xdec/base16-rofi")
-        set_by_copy "$package" "$theme" "$HOME/.config/rofi/config" "config"
+        set_rofi "$package" "$theme"
         ;;
       "chriskempson/base16-shell")
         set_shell "$package" "$theme"
@@ -491,35 +525,69 @@ set_random() {
   set_theme "$(list_themes -R | head -n1 | awk "{print $1;}")"
 }
 
+
+set_rofi() {
+  local package=$1
+  local theme=$2
+
+  # get template and handling for inexisting templates
+  if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."*"rasi" )
+  else
+    err "$package: theme $theme not found."
+    return 1
+  fi
+
+  # path to rofi config
+  local ROFI_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/rofi/config"
+
+  # remove old theme or new rasi style theme from config
+  sed -i -e '/^\! Base16 /d' \
+    -e '/^\! Author:/d' \
+    -e '/^\! base[[:xdigit:]]\{2\}/d' \
+    -e '/^\! Enable the extended coloring options/d' \
+    -e '/^rofi\.color-enabled: true/d' \
+    -e '/^\! Property Name/d' \
+    -e '/^rofi\.color-/d' \
+    -e '/^rofi\.theme/d' \
+    -e '/^! Set the desired separator style/d' \
+    -e '/^rofi.separator-style: solid/d' \
+    -e '/^# Theme set by base16-manager/d' \
+    -e '/^\s*theme:/d' "$ROFI_CONFIG"
+
+  check_eof_nl "$ROFI_CONFIG"
+  printf "# Theme set by base16-manager\\nrofi.theme: %s\\n" "$file" >> "$ROFI_CONFIG"
+}
+
 set_xresources() {
   local package=$1
   local theme=$2
   local xres=$HOME/.Xresources
   local file="$DATA_PATH/$package/xresources/base16-$theme.Xresources"
+  local xres_d="$HOME/.Xresources.d"
   local xres_color=".Xresources.d/colors"
 
   if ! file_exists "$file"; then
     err "Xresources theme not found."
   else
+    check_dir "$xres_d"
     cp "$file" "$HOME/$xres_color"
 
     if file_exists "$xres"; then
       # clean $xres and remove all lines containing color definitions
       sed -i '/^\#ifdef background_opacity/,+4d' "$xres" #ifdef till #endif
-        sed -i '/[B|b]ase[[:xdigit:]]/d' "$xres" # base16
+      sed -i '/[B|b]ase[[:xdigit:]]/d' "$xres" # base16
       sed -i '/^\! Scheme/d' "$xres" # comments
       sed -i '$!N; /^\(.*\)\n\1$/!P; D' "$xres" #remove newlines
     fi
 
-    # if $xres doesn't exist or doesn't include $xres_color, do it.
-    if ! file_exists "$xres" || \
-      ! grep -iq "^\\#include\\s\"\\(.*\\)$xres_color\"$" "$xres"
-  then
-    echo "#include \"$xres_color\"" >> "$xres"
-  fi
+    # add new line to include colors to Xresources
+    line_in_file "$xres" \
+                 "^#include\\s+\".*$xres_color\"$" \
+                 "#include \"$xres_color\""
 
-  xrdb -load "$xres" # reload colors
-fi
+    xrdb -load "$xres" # reload colors
+  fi
 }
 
 main() {
