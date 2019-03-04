@@ -1,6 +1,6 @@
 # base16-manager
 
-[![Build Status](https://travis-ci.org/AuditeMarlow/base16-manager.svg?branch=master)](https://travis-ci.org/AuditeMarlow/base16-manager)
+[![Build Status](https://travis-ci.org/base16-manager/base16-manager.svg?branch=master)](https://travis-ci.org/base16-manager/base16-manager)
 
 `base16-manager` is a command line tool to install base16 templates and set
 themes globally. This helps a lot if you have multiple base16 templates
