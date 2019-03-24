@@ -284,7 +284,11 @@ set_theme() {
           "$HOME/.config/zathura/zathurarc"
         ;;
       "khamer/base16-termite")
+        termite_transp=$(grep -Po 'background\s*=\s*rgba\(\d+,\s*\d+,\s*\d+,\s*\K[\.0-9]+' $HOME/.config/termite/config)
         set_generic "$package" "$theme" "#" "=" "$HOME/.config/termite/config"
+        if [[ -n "$termite_transp" ]]; then
+          sed -i 's/\(background\s*=\s*rgba(.*\))/\1, '"$termite_transp"')/' $HOME/.config/termite/config
+        fi
         killall -USR1 termite  # Reload termite configuration in-place.
         ;;
       "theova/base16-qutebrowser")
