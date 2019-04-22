@@ -348,9 +348,8 @@ set_generic() {
   cp "$config" "$config_tmp"
 
   while read -r line; do
-    # get left side of each assignement
-    left=$(echo "$line" | cut -d "$assign_string" -f 1)
-    left=$(echo "$left" | xargs) # remove trailing whitespaces
+    # get left side of each assignement and remove trailing spaces
+    left=$(echo "$line" | cut -d "$assign_string" -f 1 | sed 's/[[:space:]]*$//')
     left=$(echo "$left" | sed 's/\//\\\//g') # escape slashes
 
 
