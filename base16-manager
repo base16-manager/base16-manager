@@ -469,6 +469,63 @@ set_fzf() {
   fi
 }
 
+set_shell_fish() {
+  # Don't do anything if fish isn't found
+  command -v fish >/dev/null 2>&1 || return
+
+  # Make fish theme permanent
+  local file=$1
+  local fish_dir="$HOME/.config/fish"
+  local fish_config="$fish_dir/config.fish"
+  local fish_string
+  fish_string=$(echo "# Base16 Shell
+  if status --is-interactive
+    eval sh ${file}
+  end" | sed 's/  //')
+  [[ ! -d "$fish_dir" ]] && mkdir "$fish_dir"
+  [[ ! -f "$fish_config" ]] && touch "$fish_config"
+
+  sed '/^# Base16 Shell$/,/^end$/d' "$fish_config" > /tmp/fish_config
+  [[ -f "$fish_config.bac" ]] && rm "$fish_config.bac"
+  mv "$fish_config" "$fish_config.bac"
+  mv /tmp/fish_config "$fish_config"
+  echo "$fish_string" >> "$fish_config"
+}
+
+set_shell_zsh() {
+  # Don't do anything if zsh isn't found
+  command -v zsh >/dev/null 2>&1 || return
+
+  # Make zsh theme permanent
+  local file=$1
+  local zshrc="$HOME/.zshrc"
+  local base16_start='#### base16-shell Start ####'
+  local base16_end='#### base16-shell End ####'
+  local tmprc="/tmp/zshrc"
+  zsh_string=$(echo -en "$base16_start
+  # This Section is managed by base16_manager - Don't edit it!
+  BASE16_SHELL=\"${2%/*}\"
+  [ -n \"\$PS1\" ] && \\
+    [ -s \"\$BASE16_SHELL/profile_helper.sh\" ] && \\
+        eval \"\$(\"\$BASE16_SHELL/profile_helper.sh\")\"
+  $base16_end" | sed 's/  //'
+  )
+
+  sed "/^$base16_start$/,/^$base16_end$/d" "$zshrc" > "$tmprc"
+  if grep -e "\(BASE16_SHELL=\)\|\(^# Base16 Shell$\)" "$tmprc" >/dev/null 2>&1 ; then
+    echo -ne "\n######## base16-shell installation FAILED! ########
+    base16-shell is already installed in $HOME/.zshrc
+    Please remove it there and run base16_manager again!
+    ######## base16-shell installation FAILED! ########\n\n" | sed 's/    //'
+    return
+  fi
+
+  [[ -f "$zshrc.bac" ]] && rm "$zshrc.bac"
+  mv "$zshrc" "$zshrc.bac"
+  mv "$tmprc" "$zshrc"
+  echo "$zsh_string" >> "$zshrc"
+}
+
 set_shell() {
   local package=$1
   local theme=$2
@@ -483,24 +540,8 @@ set_shell() {
     eval "$($helper)"
     _base16 "$file"
 
-    if command -v fish >/dev/null 2>&1; then
-      # Make fish theme permanent
-      local fish_dir="$HOME/.config/fish"
-      local fish_config="$fish_dir/config.fish"
-      local fish_string
-      fish_string=$(echo "# Base16 Shell
-        if status --is-interactive
-          eval sh ${file}
-        end" | sed 's/        //')
-      [[ ! -d "$fish_dir" ]] && mkdir "$fish_dir"
-      [[ ! -f "$fish_config" ]] && touch "$fish_config"
-
-      sed '/^# Base16 Shell$/,/^end$/d' "$fish_config" > /tmp/fish_config
-      [[ -f "$fish_config.bac" ]] && rm "$fish_config.bac"
-      mv "$fish_config" "$fish_config.bac"
-      mv /tmp/fish_config "$fish_config"
-      echo "$fish_string" >> "$fish_config"
-    fi
+    set_shell_fish "$file", "$helper"
+    set_shell_zsh "$file", "$helper"
   fi
 }
 
