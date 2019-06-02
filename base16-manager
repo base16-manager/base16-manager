@@ -562,7 +562,8 @@ set_xresources() {
   local package=$1
   local theme=$2
   local xres=$HOME/.Xresources
-  local file="$DATA_PATH/$package/xresources/base16-$theme.Xresources"
+  local filename="base16-$theme.Xresources"
+  local file="$DATA_PATH/$package/xresources/$filename"
   local xres_d="$HOME/.Xresources.d"
   local xres_color=".Xresources.d/colors"
 
@@ -583,7 +584,7 @@ set_xresources() {
     # add new line to include colors to Xresources
     line_in_file "$xres" \
                  "^#include\\s+\".*$xres_color\"$" \
-                 "#include \"$xres_color\""
+                 "#include \"$xres_color/$filename\""
 
     xrdb -load "$xres" # reload colors
   fi
