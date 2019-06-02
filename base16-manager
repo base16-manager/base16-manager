@@ -474,12 +474,6 @@ set_shell() {
   local theme=$2
   local file="$DATA_PATH/$package/scripts/base16-$theme.sh"
   local helper="$DATA_PATH/$package/profile_helper.sh"
-  local fish_dir="$HOME/.config/fish"
-  local fish_config="$fish_dir/config.fish"
-  local fish_string="# Base16 Shell
-  if status --is-interactive
-    eval sh $file
-  end"
 
   if ! file_exists "$helper"; then
     err "Shell helper not found."
@@ -491,6 +485,13 @@ set_shell() {
 
     if command -v fish >/dev/null 2>&1; then
       # Make fish theme permanent
+      local fish_dir="$HOME/.config/fish"
+      local fish_config="$fish_dir/config.fish"
+      local fish_string
+      fish_string=$(echo "# Base16 Shell
+        if status --is-interactive
+          eval sh ${file}
+        end" | sed 's/        //')
       [[ ! -d "$fish_dir" ]] && mkdir "$fish_dir"
       [[ ! -f "$fish_config" ]] && touch "$fish_config"
 
