@@ -487,7 +487,7 @@ set_shell() {
     err "Shell theme not found."
   else
     eval "$($helper)"
-    _base16 "$file"
+    _base16 "$file" "$theme"
 
     if command -v fish >/dev/null 2>&1; then
       # Make fish theme permanent
