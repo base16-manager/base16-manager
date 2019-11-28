@@ -289,16 +289,17 @@ set_theme() {
       "theova/base16-qutebrowser")
         # handle different locations of config
         if is_mac; then
-          QUTEBROWSERCONF="$HOME/.qutebrowser/config.py"
+          QUTEBROWSERDIR="$HOME/.qutebrowser/"
         elif is_linux; then
-          QUTEBROWSERCONF="$HOME/.config/qutebrowser/config.py"
+          QUTEBROWSERDIR="$HOME/.config/qutebrowser/"
         else
           bug "Unkown OS: $(uname)"
           return
         fi
 
         # set theme
-        set_generic "$package" "$theme" "#" "=" "$QUTEBROWSERCONF"
+        # set_generic "$package" "$theme" "#" "=" "$QUTEBROWSERCONF"
+        set_qutebrowser "$package" "$theme" "$QUTEBROWSERDIR"
         ;;
       "rkubosz/base16-sway")
         set_by_copy "$package" "$theme" "$HOME/.config/sway/colorscheme" "config"
@@ -423,13 +424,40 @@ set_by_copy() {
   cp "$file" "$config"
 }
 
+set_qutebrowser() {
+  local package=$1
+  local theme=$2
+  local configd=$3
+  local quterc="$configd/config.py"
+  local qute_colors="$configd/qute_colors.py"
+  local theme_type="default"    # "default" or "minimal"
+
+  # get template and handling for inexisting templates
+  if ls "$DATA_PATH/$package"/*/"$theme_type/base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package"/*/"$theme_type/base16-$theme."* )
+  else
+    err "$package: theme $theme not found."
+    return 1
+  fi
+
+  if [ -f $qute_colors ]; then
+      mv $qute_colors "$qute_colors.bac"
+  fi
+  
+  cp $file $qute_colors
+
+  # add new line to include colors to Xresources
+  line_in_file "$quterc" \
+               "^config.source(\"qute_colors.py\")\\s*$" \
+               "config.source(\"qute_colors.py\")"
+}
+
 set_zathura() {
   local package=$1
   local theme=$2
   local configd="$HOME/.config/zathura/"
   local zathurarc="$configd/zathurarc"
   local zathura_colors="$configd/zathura_colors"
-  local file="$DATA_PATH/$package/xresources/base16-$theme.Xresources"
 
   # get template and handling for inexisting templates
   if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
