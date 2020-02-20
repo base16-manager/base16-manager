@@ -203,6 +203,7 @@ list_support() {
   echo "nicodebo/base16-zathura"
   echo "theova/base16-qutebrowser"
   echo "rkubosz/base16-sway"
+  echo "mattdavis90/base16-tmux"
 }
 
 # print uninstalled packages which are supported
@@ -303,6 +304,9 @@ set_theme() {
         ;;
       "rkubosz/base16-sway")
         set_by_copy "$package" "$theme" "$HOME/.config/sway/colorscheme" "config"
+        ;;
+      "mattdavis90/base16-tmux")
+        set_tmux "$package" "$theme"
         ;;
       *)
         err "Package $package is not (yet) supported."
@@ -556,6 +560,20 @@ set_rofi() {
 
   check_eof_nl "$ROFI_CONFIG"
   printf "# Theme set by base16-manager\\nrofi.theme: %s\\n" "$file" >> "$ROFI_CONFIG"
+}
+
+set_tmux(){
+  local package=$1
+  local theme=$2
+  local file="$DATA_PATH/$package/colors/base16-$theme.conf"
+  local TMUX_CONFIG="$HOME/.tmux.conf"
+
+  if ! file_exists "$file"; then
+    err "Tmux theme $theme not found"
+  else
+    sed -i "/source ${DATA_PATH//\//\\/}.*base16-/d" $TMUX_CONFIG
+    echo "source $file" >> $TMUX_CONFIG
+  fi
 }
 
 set_xresources() {
