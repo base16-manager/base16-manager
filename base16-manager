@@ -203,6 +203,8 @@ list_support() {
   echo "nicodebo/base16-zathura"
   echo "theova/base16-qutebrowser"
   echo "rkubosz/base16-sway"
+  echo "afq984/base16-xfce4-terminal"
+  echo "kdrag0n/base16-kitty"
 }
 
 # print uninstalled packages which are supported
@@ -304,6 +306,12 @@ set_theme() {
       "rkubosz/base16-sway")
         set_by_copy "$package" "$theme" "$HOME/.config/sway/colorscheme" "config"
         ;;
+      "kdrag0n/base16-kitty")
+        set_kitty "$package" "$theme"
+        ;;
+      "afq984/base16-xfce4-terminal")
+        set_xfce4_terminal "$package" "$theme" 
+        ;;
       *)
         err "Package $package is not (yet) supported."
         ;;
@@ -331,7 +339,7 @@ set_generic() {
 
   # get template and handling for inexisting templates
   if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."* )
+    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."*)
   else
     err "$package: theme $theme not found."
     return 1
@@ -586,6 +594,101 @@ set_xresources() {
                  "#include \"$xres_color\""
 
     xrdb -load "$xres" # reload colors
+  fi
+}
+
+set_kitty() {
+  package=$1
+  theme=$2
+  local kitty_dir="$HOME/.config/kitty"
+  local kitty_config="$kitty_dir/kitty.conf"
+  local kitty_color_fname="colors.conf"
+  local kitty_color="$kitty_dir/$kitty_color_fname"
+  local file
+
+  if [[ ${theme:$length:3} != ".16" ]]; then
+    theme=$theme-256
+  fi
+
+  file="$DATA_PATH/$package/colors/base16-$theme.conf"
+  
+  if ! file_exists "$file"; then
+    err "Kitty theme \"$theme\" not found."
+  else
+    check_dir "$kitty_dir"
+    cp "$file" "$kitty_color"
+
+    if file_exists "$kitty_config"; then
+      # remove all lines containing color definitions
+      sed -i.bak -e '/^\(\(selection_\|\(in\)\?active_tab_\)\?\(foreground\|background\)\)\+.*$/d' \
+             -e '/^\(\(url_\|\(in\)\?active_border_\)color\)\+.*$/d' \
+             -e '/^\(cursor\)\+.*$/d' \
+             -e '/^\(color[[:xdigit:]]+\)\+.*$/d' "$kitty_config"
+
+    fi
+    # add new line to include colors in seperate file
+    line_in_file "$kitty_config" \
+               "^include\\s+.*$kitty_color_fname$" \
+               "include $kitty_color_fname"
+  fi
+}
+
+set_xfce4_terminal() {
+  package=$1
+  theme=$2
+  local xfce4_terminal_dir="$HOME/.config/xfce4/terminal"
+  local xfce4_terminal_config="$xfce4_terminal_dir/terminalrc"
+  local file="$DATA_PATH/$package/colorschemes/base16-$theme.theme"
+
+  if ! file_exists "$file"; then
+    err "Xfce4 theme \"$theme\" not found."
+  else
+    local filedata=$(grep -v -e Name -e Scheme "$file")
+    check_dir "$xfce4_terminal_dir"
+ 
+    # If file exists, replace all existing instances of settings
+    # with ones found in color scheme
+    if file_exists "$xfce4_terminal_config"; then
+      # work with a temporary config copy
+      local config_tmp=/tmp/base16_manager_$(basename "$xfce4_terminal_config")
+      cp "$xfce4_terminal_config" "$config_tmp"
+
+      for line in $filedata
+      do
+        # get left side of each assignement
+        left=$(echo "$line" | cut -d "=" -f 1)
+        left=$(echo "$left" | xargs) # remove trailing whitespaces
+        left=$(echo "$left" | sed 's/\//\\\//g') # escape slashes
+
+        # if $left found, then
+        # delete all lines ($line) containing $left
+        # remove all comments above $line
+        if [[ -n $left ]]; then
+          lines=$(grep -Fohn "$left" "$config_tmp"  | cut -d : -f 1)
+
+          for number in $lines; do
+            sed -i "$number"'d' "$config_tmp"
+            while  (( number > 1 )) && sed "$(( number - 1 ))"'!d' "$config_tmp" | grep -q "^#"; do
+              sed -i "$(( number - 1 ))"'s/.*//' "$config_tmp"
+              number=$((number - 1))
+            done
+          done
+        fi
+      done
+
+      # append colorscheme configuration to actual configuration
+      echo "$filedata" >> "$config_tmp"
+
+      # create a backup
+      cp "$xfce4_terminal_config" "$xfce4_terminal_config.bak"
+      # overwrite file
+      cp "$config_tmp" "$xfce4_terminal_config"
+      # remove temporary files
+      rm "$config_tmp"
+    else
+      echo "[Configuration]" > "$xfce4_terminal_config"
+      echo "$filedata" >> "$xfce4_terminal_config"
+    fi
   fi
 }
 
