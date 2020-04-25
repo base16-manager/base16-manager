@@ -433,7 +433,7 @@ set_dunst() {
   if ! file_exists "$file"; then
     err "Dunst theme not found."
   else
-    sed '/^\[base16_low\]$/,/^\s+foreground(.*)$/d' "$config" > /tmp/dunstrc
+    sed '/^frame_color = .*$/,/^\s+foreground(.*)$/d' "$config" > /tmp/dunstrc
     [[ -f "$config.bac" ]] && rm "$config.bac"
     mv "$config" "$config.bac"
     cat /tmp/dunstrc "$file" > "$config"
