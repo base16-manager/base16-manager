@@ -530,8 +530,8 @@ set_rofi() {
   local theme=$2
 
   # get template and handling for inexisting templates
-  if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."*"rasi" )
+  if ls "$DATA_PATH/$package/themes/base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package/themes/base16-$theme."*"rasi" )
   else
     err "$package: theme $theme not found."
     return 1
