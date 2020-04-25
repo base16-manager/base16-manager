@@ -446,27 +446,41 @@ set_dunst() {
 set_fzf() {
   local package=$1
   local theme=$2
-  local file=""
-  local line="[ -f ~/.fzf.colors ] && source ~/.fzf.colors"
-  local configs=".bashrc .zshrc .config/fish/config.fish"
+  local theme_files=(
+    "$HOME/.fzf.colors" # bash
+    "$HOME/.fzf.colors" # zsh
+    "$HOME/.fzf.colors.fish" # fish
+  )
+  local config_lines=(
+    "[ -f ~/.fzf.colors ] && source ~/.fzf.colors" # bash
+    "[ -f ~/.fzf.colors ] && source ~/.fzf.colors" # zsh
+    "[ -f ~/.fzf.colors.fish ] && source ~/.fzf.colors.fish" # fish
+  )
+  local configs=(
+    ".bashrc" # bash
+    ".zshrc" # zsh
+    ".config/fish/config.fish" # fish
+  )
+  local files=(
+    "$DATA_PATH/$package/bash/base16-$theme.config" # bash
+    "$DATA_PATH/$package/bash/base16-$theme.config" # zsh
+    "$DATA_PATH/$package/fish/base16-$theme.fish" # fish
+  )
 
-  if command -v fish >/dev/null 2>&1; then
-    file="$DATA_PATH/$package/fish/base16-$theme.fish"
-  else
-    file="$DATA_PATH/$package/bash/base16-$theme.config"
-  fi
-
-  if ! file_exists "$file"; then
-    err "FZF theme not found."
-  else
-    cp "$file" "$HOME/.fzf.colors"
-
-    for config in $configs; do
-      if file_exists "$HOME/$config" && ! grep -Fxq "$line" "$HOME/$config"; then
-        echo "$line" >> "$HOME/$config"
+  for i in ${!configs[@]}; do
+    theme_file=${theme_files[$i]}
+    config=${configs[$i]}
+    config_line=${config_lines[$i]}
+    file=${files[$i]}
+    if ! file_exists "$file"; then
+      err "FZF theme not found."
+    else
+      cp "$file" "$theme_file"
+      if file_exists "$HOME/$config" && ! grep -Fxq "$config_line" "$HOME/$config"; then
+        echo "$config_line" >> "$HOME/$config"
       fi
-    done
-  fi
+    fi
+  done
 }
 
 set_shell() {
