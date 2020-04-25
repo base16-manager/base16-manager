@@ -7,6 +7,8 @@ BASHCOMP=completion/completion.bash
 BASHCOMPDIR=${PREFIX}/share/bash-completion/completions
 ZSHCOMP=completion/completion.zsh
 ZSHCOMPDIR=${PREFIX}/share/zsh/site-functions/
+FISHCOMP=completion/completion.fish
+FISHCOMPDIR=${PREFIX}/share/fish/vendor_completions.d/
 
 install:
 	install -D -m755 ${TARGET} ${DESTDIR}${BINDIR}/${TARGET}
@@ -24,8 +26,15 @@ install:
 	install -D -m644 ${ZSHCOMP} ${DESTDIR}${ZSHCOMPDIR}/_base16-manager; \
 	fi;
 
+	@if [[ -d ${FISHCOMPDIR} ]] ; \
+	then \
+	echo "install completion for fish"; \
+	install -D -m644 ${FISHCOMP} ${DESTDIR}${FISHCOMPDIR}/base16-manager.fish; \
+	fi;
+
 clean:
 	rm -f ${DESTDIR}${BINDIR}/${TARGET}
 	rm -f ${DESTDIR}${LICENSEDIR}/${TARGET}/LICENSE
 	rm -f ${DESTDIR}${BASHCOMPDIR}/base16-manager
 	rm -f ${DESTDIR}${ZSHCOMPDIR}/_base16-manager
+	rm -f ${DESTDIR}${FISHCOMPDIR}/base16-manager.fish

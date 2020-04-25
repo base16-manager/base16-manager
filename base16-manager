@@ -433,7 +433,7 @@ set_dunst() {
   if ! file_exists "$file"; then
     err "Dunst theme not found."
   else
-    sed '/^\[base16_low\]$/,/^\s+foreground(.*)$/d' "$config" > /tmp/dunstrc
+    sed '/^frame_color = .*$/,/^\s+foreground(.*)$/d' "$config" > /tmp/dunstrc
     [[ -f "$config.bac" ]] && rm "$config.bac"
     mv "$config" "$config.bac"
     cat /tmp/dunstrc "$file" > "$config"
@@ -446,27 +446,41 @@ set_dunst() {
 set_fzf() {
   local package=$1
   local theme=$2
-  local file=""
-  local line="[ -f ~/.fzf.colors ] && source ~/.fzf.colors"
-  local configs=".bashrc .zshrc .config/fish/config.fish"
+  local theme_files=(
+    "$HOME/.fzf.colors" # bash
+    "$HOME/.fzf.colors" # zsh
+    "$HOME/.fzf.colors.fish" # fish
+  )
+  local config_lines=(
+    "[ -f ~/.fzf.colors ] && source ~/.fzf.colors" # bash
+    "[ -f ~/.fzf.colors ] && source ~/.fzf.colors" # zsh
+    "[ -f ~/.fzf.colors.fish ] && source ~/.fzf.colors.fish" # fish
+  )
+  local configs=(
+    ".bashrc" # bash
+    ".zshrc" # zsh
+    ".config/fish/config.fish" # fish
+  )
+  local files=(
+    "$DATA_PATH/$package/bash/base16-$theme.config" # bash
+    "$DATA_PATH/$package/bash/base16-$theme.config" # zsh
+    "$DATA_PATH/$package/fish/base16-$theme.fish" # fish
+  )
 
-  if command -v fish >/dev/null 2>&1; then
-    file="$DATA_PATH/$package/fish/base16-$theme.fish"
-  else
-    file="$DATA_PATH/$package/bash/base16-$theme.config"
-  fi
-
-  if ! file_exists "$file"; then
-    err "FZF theme not found."
-  else
-    cp "$file" "$HOME/.fzf.colors"
-
-    for config in $configs; do
-      if file_exists "$HOME/$config" && ! grep -Fxq "$line" "$HOME/$config"; then
-        echo "$line" >> "$HOME/$config"
+  for i in ${!configs[@]}; do
+    theme_file=${theme_files[$i]}
+    config=${configs[$i]}
+    config_line=${config_lines[$i]}
+    file=${files[$i]}
+    if ! file_exists "$file"; then
+      err "FZF theme not found."
+    else
+      cp "$file" "$theme_file"
+      if file_exists "$HOME/$config" && ! grep -Fxq "$config_line" "$HOME/$config"; then
+        echo "$config_line" >> "$HOME/$config"
       fi
-    done
-  fi
+    fi
+  done
 }
 
 set_shell() {
@@ -477,9 +491,9 @@ set_shell() {
   local fish_dir="$HOME/.config/fish"
   local fish_config="$fish_dir/config.fish"
   local fish_string="# Base16 Shell
-  if status --is-interactive
-    eval sh $file
-  end"
+if status --is-interactive
+  eval sh $file
+end"
 
   if ! file_exists "$helper"; then
     err "Shell helper not found."
@@ -530,8 +544,8 @@ set_rofi() {
   local theme=$2
 
   # get template and handling for inexisting templates
-  if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."*"rasi" )
+  if ls "$DATA_PATH/$package/themes/base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package/themes/base16-$theme."*"rasi" )
   else
     err "$package: theme $theme not found."
     return 1
