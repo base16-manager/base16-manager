@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 TARGET=base16-manager
 PREFIX=/usr
 DESTDIR=
