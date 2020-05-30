@@ -448,8 +448,8 @@ set_qutebrowser() {
 
   # add new line to include colors to Xresources
   line_in_file "$quterc" \
-               "^config.source(\"qute_colors.py\")\\s*$" \
-               "config.source(\"qute_colors.py\")"
+               "^config\.source\(\"qute_colors.py\"\)\\s*$" \
+               "config\.source(\"qute_colors.py\")"
 }
 
 set_zathura() {
