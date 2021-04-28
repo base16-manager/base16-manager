@@ -200,7 +200,7 @@ list_support() {
   echo "khamer/base16-dunst"
   echo "khamer/base16-termite"
   echo "nicodebo/base16-fzf"
-  echo "nicodebo/base16-zathura"
+  echo "HaoZeke/base16-zathura"
   echo "theova/base16-qutebrowser"
   echo "rkubosz/base16-sway"
 }
@@ -279,9 +279,8 @@ set_theme() {
       "nicodebo/base16-fzf")
         set_fzf "$package" "$theme"
         ;;
-      "nicodebo/base16-zathura")
-        set_generic "$package" "$theme" "#" ' ' \
-          "$HOME/.config/zathura/zathurarc"
+      "HaoZeke/base16-zathura")
+        set_zathura "$package" "$theme" 
         ;;
       "khamer/base16-termite")
         set_generic "$package" "$theme" "#" "=" "$HOME/.config/termite/config"
@@ -290,16 +289,17 @@ set_theme() {
       "theova/base16-qutebrowser")
         # handle different locations of config
         if is_mac; then
-          QUTEBROWSERCONF="$HOME/.qutebrowser/config.py"
+          QUTEBROWSERDIR="$HOME/.qutebrowser/"
         elif is_linux; then
-          QUTEBROWSERCONF="$HOME/.config/qutebrowser/config.py"
+          QUTEBROWSERDIR="$HOME/.config/qutebrowser/"
         else
           bug "Unkown OS: $(uname)"
           return
         fi
 
         # set theme
-        set_generic "$package" "$theme" "#" "=" "$QUTEBROWSERCONF"
+        # set_generic "$package" "$theme" "#" "=" "$QUTEBROWSERCONF"
+        set_qutebrowser "$package" "$theme" "$QUTEBROWSERDIR"
         ;;
       "rkubosz/base16-sway")
         set_by_copy "$package" "$theme" "$HOME/.config/sway/colorscheme" "config"
@@ -423,6 +423,62 @@ set_by_copy() {
   # copy template to the config location.
   cp "$file" "$config"
 }
+
+set_qutebrowser() {
+  local package=$1
+  local theme=$2
+  local configd=$3
+  local quterc="$configd/config.py"
+  local qute_colors="$configd/qute_colors.py"
+  local theme_type="default"    # "default" or "minimal"
+
+  # get template and handling for inexisting templates
+  if ls "$DATA_PATH/$package"/*/"$theme_type/base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package"/*/"$theme_type/base16-$theme."* )
+  else
+    err "$package: theme $theme not found."
+    return 1
+  fi
+
+  if [ -f $qute_colors ]; then
+      mv $qute_colors "$qute_colors.bac"
+  fi
+  
+  cp $file $qute_colors
+
+  # add new line to include colors to Xresources
+  line_in_file "$quterc" \
+               "^config\.source\(\"qute_colors.py\"\)\\s*$" \
+               "config\.source(\"qute_colors.py\")"
+}
+
+set_zathura() {
+  local package=$1
+  local theme=$2
+  local configd="$HOME/.config/zathura/"
+  local zathurarc="$configd/zathurarc"
+  local zathura_colors="$configd/zathura_colors"
+
+  # get template and handling for inexisting templates
+  if ls "$DATA_PATH/$package"/*/"colors/base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package"/*/"colors/base16-$theme."* )
+  else
+    err "$package: theme $theme not found."
+    return 1
+  fi
+
+  if [ -f $zathura_colors ]; then
+      mv $zathura_colors "$zathura_colors.bac"
+  fi
+  
+  cp $file $zathura_colors
+
+  # add new line to include colors to Xresources
+  line_in_file "$zathurarc" \
+               "^include\\s+\"zathura_colors\"$" \
+               "include \"zathura_colors\""
+}
+
 
 set_dunst() {
   local package=$1
