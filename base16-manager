@@ -200,7 +200,7 @@ list_support() {
   echo "khamer/base16-dunst"
   echo "khamer/base16-termite"
   echo "nicodebo/base16-fzf"
-  echo "nicodebo/base16-zathura"
+  echo "HaoZeke/base16-zathura"
   echo "theova/base16-qutebrowser"
   echo "rkubosz/base16-sway"
 }
@@ -279,7 +279,7 @@ set_theme() {
       "nicodebo/base16-fzf")
         set_fzf "$package" "$theme"
         ;;
-      "nicodebo/base16-zathura")
+      "HaoZeke/base16-zathura")
         set_zathura "$package" "$theme" 
         ;;
       "khamer/base16-termite")
@@ -460,8 +460,8 @@ set_zathura() {
   local zathura_colors="$configd/zathura_colors"
 
   # get template and handling for inexisting templates
-  if ls "$DATA_PATH/$package"/*/"base16-$theme."* &>/dev/null; then
-    file=$(ls "$DATA_PATH/$package"/*/"base16-$theme."* )
+  if ls "$DATA_PATH/$package"/*/"colors/base16-$theme."* &>/dev/null; then
+    file=$(ls "$DATA_PATH/$package"/*/"colors/base16-$theme."* )
   else
     err "$package: theme $theme not found."
     return 1
